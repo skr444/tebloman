@@ -1,0 +1,51 @@
+@startuml
+
+abstract class Entity {
+    + Id : Guid
+    + Created : DateTime
+    + Modified : DateTime
+}
+
+class Profile {
+    + Name : string
+    + Fragments : IDictionary<Guid, uint>
+    + AddFragment(id : Guid) : void
+    + RemoveFragment(id : Guid) : bool
+    + MoveFragmentUp(id : Guid) : void
+    + MoveFragmentDown(id : Guid) : void
+}
+
+class Fragment {
+    + Name : string
+    + Text : string
+    + Profiles : ICollection<Guid>
+}
+
+class PlaceholderTag {
+    + Pattern : string
+    + Replacement : string
+    + SourceId : Guid
+    + StartMarker : string
+    + EndMarker : string
+    + RegexInstance : Regex
+    + Build() : void
+    + Replace(input : string, source : ReplacementSource) : string
+}
+
+class ReplacementSource {
+    + Name : string
+    + Text : string
+    + Date : DateTime
+    + IsDateSource : bool
+}
+
+Entity <|-- Profile
+Entity <|-- Fragment
+Entity <|-- PlaceholderTag
+Entity <|-- ReplacementSource
+
+Profile "1" *.. "0..*" Fragment
+Fragment "1" *.. "0..*" Profile
+PlaceholderTag *.. ReplacementSource
+
+@enduml

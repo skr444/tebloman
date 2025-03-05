@@ -1,0 +1,64 @@
+@startuml storage_repository_class_diagram
+
+interface IFileStorage {
+    + GetRepository<T>() : T
+    + Load() : void
+    + Save() : void
+    + Delete() : void
+}
+
+interface IFileRepository {
+    + Load() : void
+    + Save() : void
+    + Delete() : void
+}
+
+interface IRepository<T> {
+    + TryGet(id : Guid, out instance : T) : bool
+    + All() : ICollection<T>
+    + AddOrUpdate(data : T) : void
+    + Delete(id : Guid) : void
+}
+
+interface IProfileRepository
+interface IFragmentRepository
+interface IPlaceholderTagRepository
+interface IReplacementSourceRepository
+
+abstract class FileRepository<T>
+class FileStorage
+class ProfileRepository
+class FragmentRepository
+class PlaceholderTagRepository
+class ReplacementSourceRepository
+
+IRepository <|-- IProfileRepository
+IRepository <|-- IFragmentRepository
+IRepository <|-- IPlaceholderTagRepository
+IRepository <|-- IReplacementSourceRepository
+
+IFileRepository <|-- IProfileRepository
+IFileRepository <|-- IFragmentRepository
+IFileRepository <|-- IPlaceholderTagRepository
+IFileRepository <|-- IReplacementSourceRepository
+
+IFileStorage <|.. FileStorage
+IFileRepository <|.. FileRepository
+IRepository <|.. FileRepository
+
+FileRepository <|-- ProfileRepository
+FileRepository <|-- FragmentRepository
+FileRepository <|-- PlaceholderTagRepository
+FileRepository <|-- ReplacementSourceRepository
+
+IProfileRepository <|.. ProfileRepository
+IFragmentRepository <|.. FragmentRepository
+IPlaceholderTagRepository <|.. PlaceholderTagRepository
+IReplacementSourceRepository <|.. ReplacementSourceRepository
+
+FileStorage o... ProfileRepository
+FileStorage o... FragmentRepository
+FileStorage o... PlaceholderTagRepository
+FileStorage o... ReplacementSourceRepository
+
+@enduml

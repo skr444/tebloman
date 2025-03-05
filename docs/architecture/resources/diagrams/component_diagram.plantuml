@@ -1,0 +1,50 @@
+@startuml component_diagram
+
+[Common.Data] as data
+
+interface "Storage.Api" as s_api
+[Infrastructure.Storage] as storage
+storage - s_api
+
+interface "Ui.Api" as ui_api
+[Ui] as ui
+ui - ui_api
+
+[Ui.Desktop] as desktop
+
+desktop ..> ui
+desktop ..> ui_api
+desktop ..> s_api
+desktop ..> data
+
+ui ..> s_api
+ui ..> data
+
+storage ..> data
+
+note top of desktop
+    WPF user interface
+    One view for each window
+    One view model for each view
+
+    IoC container wiring
+end note
+
+note top of ui
+    UI services
+
+    One view model for
+    each model class
+    (list item view models)
+end note
+
+note top of storage
+    File based persistence
+end note
+
+note top of data
+    Data model for
+    internal data structure
+end note
+
+@enduml

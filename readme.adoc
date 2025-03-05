@@ -1,0 +1,42 @@
+= Tebloman - Text Block Manager
+:imagesdir: ./resources/images
+:author: skr444
+:docdate: 2025-03-05
+:toc: right
+:toclevels: 3
+
+== About
+
+This document describes the tebloman repository.
+
+Project:: https://github.com/skr444/tebloman
+SCM:: git@github.com:skr444/tebloman.git
+
+== Develop
+
+Technical documentation:: `./docs/architecture/architecture.adoc`
+Documentation standard:: AsciiDoc
+Diagram standard:: Plantuml and draw.io (diagrams.net)
+
+== Build
+
+Built with Visual Studio for now.
+
+Will use a dedicated build script.
+
+== Publish
+
+Application is not published as a dedicated binary artifact at the moment.
+A simple ZIP archive is versioned in the repository root directory.
+
+The application will be published as a choco package in the future.
+
+== Install
+
+App does not require installation.
+
+Run `*.exe` to start.
+
+== Usage
+
+Please refer to the user manual under: `./docs/manual/user_manual.adoc`

@@ -1,0 +1,120 @@
+= Tebloman - Text Block Manager
+:imagesdir: ./resources/images
+:author: skr444
+:toc: right
+:toclevels: 3
+:revnumber: 1.0
+
+// URLs
+:url-community-toolkit: https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/
+
+[.big]
+*Change history*
+
+|===
+| Date | Document version | Author | Remarks
+
+| 2025-03-05
+| 1.0
+| skr444
+| Created document.
+|===
+
+== About
+
+This document depicts aspects related to architecture.
+
+Target framework:: `.NET 8.0`
+Platform support:: `Windows`, (future: `Mac`, `Linux`)
+UI framework:: `Windows Presentation Foundation (WPF)`
+Architectural pattern:: `MVVM`
+
+== Background
+
+This project serves as a concept and sample app for WPF.
+It aims to follow strict MVVM principle and uses the {url-community-toolkit}[MVVM CommunityToolkit] by the .NET Foundation to achieve this and to avoid having to reinvent the wheel.
+
+A simple an straight forward use case was chosen that brings some basic UI challenges suitable for an introduction into the MVVM community toolkit.
+
+== UI
+
+A rough design for the UI is outlined below.
+
+.Wireframe
+[#img-ui_design,align="center"]
+image::ui_design.svg[image]
+
+== System overview
+
+The app provides means to create, manage and persist fragments of text that can be used to assemble a larger text such as an email, or out-of-office notification.
+The fragments can contain customizable placeholder tags such as a date or location, or any other user defined tags.
+Fragments are grouped into profiles that can be stored to disk.
+
+All entities have UI components for basic CRUD operations, such as:
+
+- List all
+- Read
+- Create new
+- Save
+- Edit
+- Delete
+
+=== Profile
+
+A profile groups fragments and assigns it a name and other meta data.
+
+=== Fragment
+
+A fragment is a block of text with possible placeholder tags.
+Fragments are assigned to profiles.
+
+=== Placeholder tag
+
+These define a sequence of characters that will be replaced by a pre-defined value such as a date, timestamp, user name, etc.
+
+=== Replacement source
+
+Replacement sources are associated with placeholder tags and provide a quick way to provide a replacement value for any given placeholder tag.
+
+== Components
+
+The application is divided into components each of which serves a specific purpose.
+
+.Components
+[#img-component_diagram]
+image::component_diagram.svg[image]
+
+All classes with dependencies are managed by the IoC container, which is wired up in the main component `Ui.Desktop`.
+View models with interaction logic are also hooked up to their views through the container.
+Each view gets its view model from the container when it is initialized.
+View model instances are transient, meaning they do not contain state, but merely interaction logic.
+All state is maintained through service dependencies.
+
+== Data view
+
+Entities of the data model are:
+
+- Profile
+- Fragment
+- PlaceholderTag
+- ReplacementSource
+
+.Model classes
+[#img-model_class_diagram,align="center"]
+image::model_class_diagram.svg[image]
+
+== Persistence
+
+Persistent data storage is kept as simple as possible.
+The CRUD operations have been simplified down to:
+
+- AddOrUpdate()
+- All()
+- Delete()
+- TryGet()
+
+To achieve a lightweight persistence a JSON based file storage was implemented.
+
+.File storage
+[#img-storage_repository_class_diagram,align="center"]
+image::storage_repository_class_diagram.svg[image]

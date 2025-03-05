@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>Tebloman Desktop</title>
+    <authors>skr444</authors>
+    <owners>skr444</owners>
+    <projectUrl>https://github.com/skr444/tebloman</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>text block manager $tags$</tags>
+    <description>Manager for frequently used text blocks.</description>
+    <releaseNotes>- feat: created</releaseNotes>
+  </metadata>
+  <files>
+    <file src="*.ps1" target="tools" />
+    <file src="..\artifacts\$id$.exe" target="tools" />
+  </files>
+</package>

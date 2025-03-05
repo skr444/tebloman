@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+      <ImplicitUsings>disable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <RootNamespace>Skr.Tebloman.Common.Data.Test</RootNamespace>
+      <AssemblyName>Skr.Tebloman.Common.Data.Test</AssemblyName>
+      <PackageId>Skr.Tebloman.Common.Data.Test</PackageId>
+      <Authors>Skr.Tebloman.Common.Data.Test</Authors>
+      <OutputPath>..\..\build\Test\</OutputPath>
+      <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+      <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\VersionInfo.cs" Link="Properties\VersionInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Skr.Tebloman.Common.Data\Skr.Tebloman.Common.Data.csproj" />
+  </ItemGroup>
+
+</Project>

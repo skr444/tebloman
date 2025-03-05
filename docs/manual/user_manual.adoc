@@ -1,0 +1,123 @@
+= Tebloman - Text Block Manager
+:imagesdir: ./resources/images
+:author: skr444
+:toc: right
+:toclevels: 3
+:revnumber: 1.0
+
+[.big]
+*Change history*
+
+|===
+| Date | Document version | Author | Remarks
+
+| 2025-03-05
+| 1.0
+| skr444
+| Created document.
+|===
+
+== About
+
+This document describes how to use the application.
+
+== User interface
+
+Each of the four entities managed by the application has a dedicated part of the main UI.
+
+=== Profiles
+
+A profile is a set of text fragments that make up a larger block of text.
+
+.Profile editor
+[#img-tebloman_ui_profiles]
+image::tebloman_ui_profiles.png[image]
+
+To create a new profile, click the *New* button and type a name into the textbox on the right.
+Then click *Save*.
+The stored profile will appear in the list on the left.
+
+=== Placeholders
+
+A placeholder (or placeholder tag) is a sequence of characters in a text fragment that is replaced by some value.
+
+.Placeholders
+[#img-tebloman_ui_placeholders]
+image::tebloman_ui_placeholders.png[image]
+
+To create a new placeholder, click the *Editor* button, which opens the placeholder editor window.
+
+.Placeholder editor
+[#img-tebloman_ui_placeholder_editor]
+image::tebloman_ui_placeholder_editor.png[image]
+
+Type a word into the *Pattern* textbox.
+This sequence together with the start and end marker will be detected in text fragments and automatically replaced with another text.
+
+Example::
+You type the word `Me` and leave the default start and end markers.
+You can now use the character sequence `{Me}` in text fragments.
+
+There are two options for specifying a replacement text:
+
+- Directly specify another text in the *Replacement* textbox.
+- Bind a <<Replacement sources,replacement source>> to a placeholder by checking the *Has Source* checkbox and selecting from a previously created replacement source.
+
+==== Date part identifiers
+
+Through the use of date part identifiers it can be controlled how dates are displayed in fragments.
+The application supports the following date part identifiers:
+
+[cols="1,2"]
+|===
+| Identifier | Effect
+
+| Date
+| Displays the short date, e.g. `10.03.2025`
+
+| Time
+| Displays the time, e.g. `08:15:00`
+
+| Weekday
+| Displays the name of the week day, e.g. `Tuesday`
+|===
+
+To use a date part identifier, simply type it after a colon `:` postfixed to a placeholder tag.
+
+Example::
+Say a placeholder named `ReturnDate` has been defined with an associated replacement source with a date.
+This placeholder would be used in a text fragment as `{ReturnDate}`.
+So, e.g., to specify that the week day is displayed, postfix `:Weekday`, which results in the placeholder tag in its entirety `{ReturnDate:Weekday}`.
+
+=== Fragments
+
+A fragment is a section of text that can have an arbitrary number of placeholders.
+Fragments are associated with a profile and are assembled into a larger text by the application.
+
+.Fragment editor
+[#img-tebloman_ui_fragments]
+image::tebloman_ui_fragments.png[image]
+
+Click the *New* button to create a new fragment.
+Type a name into the small textbox below the *Add to profile* button and specify a text in the large textbox.
+Use the previously created <<Placeholders,placeholders>>.
+Click *Save* when finished and the created fragment appears in the *Available fragments* list.
+
+Select a fragment in the *Available fragments* list and click the *Add to profile* button to associate it with the currently selected profile.
+Use the */\* (up) and *\/* (down) buttons to move the fragment to the desired position.
+Observe the assembled text in the *Output* textbox.
+
+=== Replacement sources
+
+A replacement source offers a convenient way to provide a replacement value for placeholders.
+Replacement sources can either provide a date or a text that will be substituted for the associated placeholder tag.
+
+.Replacement source editor
+[#img-tebloman_ui_replacement_sources]
+image::tebloman_ui_replacement_sources.png[image]
+
+Click the *New* button to create a new replacement source and type a label into the *Name* textbox.
+Either type a text into the textbox below or check the *Date* checkbox and select a date.
+Then click *Save* and the created replacement source appears in the list.
+
+See section <<Placeholders>> for how to bind a replacement source to a placeholder.
