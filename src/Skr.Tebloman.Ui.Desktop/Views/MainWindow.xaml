@@ -1,0 +1,275 @@
+﻿<Window x:Class="Skr.Tebloman.Ui.Desktop.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        
+        Title="Tebloman"
+        Height="750"
+        Width="1000"
+        MinHeight="600"
+        MinWidth="700"
+        >
+    <Window.Resources>
+        <Style TargetType="Label" x:Key="TitleLabelStyle">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0 0 0 3"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="3 3 3 0"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="3 0 3 0"/>
+        </Style>
+        <Style TargetType="ListView">
+            <Setter Property="Margin" Value="3 0 3 0"/>
+        </Style>
+        
+        <!-- column indices -->
+        <sys:Int32 x:Key="UiRightColumnIndex">2</sys:Int32>
+        
+        <!-- row indices -->
+        <sys:Int32 x:Key="UiConfigRowIndex">1</sys:Int32>
+        <sys:Int32 x:Key="UiOutputRowIndex">3</sys:Int32>
+    </Window.Resources>
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" MaxWidth="500"/>
+            <ColumnDefinition Width="6"/>
+            <ColumnDefinition Width="6*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Menu Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <MenuItem Header="File" VerticalAlignment="Stretch">
+                <Button Content="Exit" Command="{Binding ExitCommand}"/>
+                <Button Content="Load from disk" Command="{Binding LoadFromDiskCommand}"/>
+                <Button Content="Save to disk" Command="{Binding SaveToDiskCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Edit" VerticalAlignment="Stretch">
+                <Button Content="Placeholders..." Command="{Binding EditPlaceholderCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- left column -->
+        <Grid Grid.Row="{StaticResource UiConfigRowIndex}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <Label Grid.Row="0" Grid.ColumnSpan="3" Content="Profiles" Style="{StaticResource TitleLabelStyle}"/>
+            <ListView Grid.Row="1" Grid.ColumnSpan="3"
+                      ItemsSource="{Binding Profiles}"
+                      SelectedItem="{Binding SelectedProfile, Mode=OneWayToSource}" />
+            <Button Grid.Row="2" Content="New" Command="{Binding NewProfileCommand}"/>
+            <Button Grid.Row="2" Grid.Column="1" Content="Save" Command="{Binding SaveProfileCommand}"/>
+            <Button Grid.Row="2" Grid.Column="2" Content="Remove" Command="{Binding RemoveProfileCommand}"/>
+            <!-- Row 3 -->
+
+            <Label Grid.Row="4" Grid.ColumnSpan="3" Content="Placeholders" Style="{StaticResource TitleLabelStyle}"/>
+            <ListView Grid.Row="5" Grid.ColumnSpan="3"
+                      ItemsSource="{Binding Placeholders}"
+                      SelectedItem="{Binding SelectedPlaceholder, Mode=OneWayToSource}"/>
+            <!-- Row 6-->
+
+            <Label Grid.Row="7" Grid.ColumnSpan="3" Content="Placeholder" Style="{StaticResource TitleLabelStyle}"/>
+            <Grid Grid.Row="8" Grid.ColumnSpan="3" Margin="3 0 3 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="TextBox">
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+                </Grid.Resources>
+                
+                <Label Grid.Row="0" Content="Pattern"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PlaceholderPattern, Mode=OneWay}"/>
+
+                <Label Grid.Row="1" Content="Replacement"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PlaceholderReplacement, Mode=OneWay}"/>
+            </Grid>
+            <Grid Grid.Row="9" Grid.ColumnSpan="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="9" Content="Editor" Command="{Binding EditPlaceholderCommand}"/>
+                <Button Grid.Column="1" Content="Remove" Command="{Binding RemovePlaceholderCommand}"/>
+            </Grid>
+        </Grid>
+
+        <!-- right column -->
+        <Grid Grid.Row="{StaticResource UiConfigRowIndex}" Grid.Column="{StaticResource UiRightColumnIndex}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.ColumnSpan="2" Content="Profile" Style="{StaticResource TitleLabelStyle}"/>
+            <TextBox Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding SelectedProfileName}"/>
+            <!-- Row 2 -->
+
+            <Label Grid.Row="3" Content="Profile fragments" Style="{StaticResource TitleLabelStyle}"/>
+            <ListView Grid.Row="4"
+                      ItemsSource="{Binding ProfileFragments}"
+                      SelectedItem="{Binding SelectedProfileFragment, UpdateSourceTrigger=PropertyChanged}"
+                      Background="{Binding ProfileFragmentsBackground, Mode=OneWay}"/>
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="Remove from profile" Command="{Binding RemoveFragmentFromProfileCommand}"/>
+                <Button Grid.Column="1" Content="/\" Command="{Binding MoveFragmentUpCommand}"/>
+                <Button Grid.Column="2" Content="\/" Command="{Binding MoveFragmentDownCommand}"/>
+            </Grid>
+            <!-- Row 6-->
+
+            <Label Grid.Row="3" Grid.Column="1" Content="Available fragments" Style="{StaticResource TitleLabelStyle}"/>
+            <ListView Grid.Row="4" Grid.Column="1"
+                      ItemsSource="{Binding GlobalFragments}"
+                      SelectedItem="{Binding SelectedGlobalFragment, UpdateSourceTrigger=PropertyChanged}"
+                      Background="{Binding GlobalFragmentsBackground, Mode=OneWay}"/>
+            <Button Grid.Row="5" Grid.Column="1" Content="Add to profile" Command="{Binding AddFragmentToProfileCommand}"/>
+
+            <Label Grid.Row="7" Content="Fragment" Style="{StaticResource TitleLabelStyle}"/>
+            <TextBox Grid.Row="7" Grid.Column="1"
+                     Text="{Binding FragmentName}" VerticalContentAlignment="Center"/>
+            <TextBox Grid.Row="8" Grid.ColumnSpan="2"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Text="{Binding FragmentText}"/>
+            <Grid Grid.Row="9" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Button Content="New" Command="{Binding NewFragmentCommand}"/>
+                <Button Grid.Column="1" Content="Save" Command="{Binding SaveFragmentCommand}"/>
+                <Button Grid.Column="2" Content="Remove" Command="{Binding RemoveFragmentCommand}"/>
+            </Grid>
+            <!-- Row 10-->
+        </Grid>
+
+        <Grid Grid.Row="{StaticResource UiOutputRowIndex}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="3"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="3"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Content="Replacement sources" Style="{StaticResource TitleLabelStyle}"/>
+            <ListView Grid.Row="2"
+                      ItemsSource="{Binding ReplacementSources}"
+                      SelectedItem="{Binding SelectedReplacementSource, Mode=OneWayToSource}"/>
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Content="Name"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding ReplacementSourceName}"/>
+
+                <Label Grid.Row="1" Content=""/>
+                <CheckBox Grid.Row="1" Grid.RowSpan="2" Margin="3 3 3 3" VerticalAlignment="Center"
+                          Content="Date"
+                          IsChecked="{Binding ReplacementSourceIsDate}"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding ReplacementSourceText}"
+                         IsEnabled="{Binding ReplacementSourceDataTextBoxEnabled}"/>
+
+                <DatePicker Grid.Row="2" Grid.Column="1" Margin="3 0 3 0"
+                            SelectedDate="{Binding ReplacementSourceDate}"
+                            IsEnabled="{Binding ReplacementSourceDatePickerEnabled}"/>
+
+                <Grid Grid.Row="3" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="New" Command="{Binding NewReplacementSourceCommand}"/>
+                    <Button Grid.Column="1" Content="Save" Command="{Binding SaveReplacementSourceCommand}"/>
+                    <Button Grid.Column="2" Content="Remove" Command="{Binding RemoveReplacementSourceCommand}"/>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="{StaticResource UiOutputRowIndex}" Grid.Column="{StaticResource UiRightColumnIndex}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Content="Output" Style="{StaticResource TitleLabelStyle}"/>
+            <Button Grid.Column="1" Content="Copy to clip board"
+                    Command="{Binding CopyToClipBoardCommand}"/>
+            <TextBox Grid.Row="1" Grid.ColumnSpan="2"
+                 Height="200"
+                 Text="{Binding ResultText, Mode=OneWay}"/>
+        </Grid>
+
+        <StatusBar Grid.Row="5" Grid.ColumnSpan="3" VerticalAlignment="Bottom">
+            <StatusBarItem Content="{Binding StatusText, Mode=OneWay}"/>
+        </StatusBar>
+    </Grid>
+</Window>

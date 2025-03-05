@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8D4A93E6-FF6B-400B-99F9-5FD0DB92B0D3}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+		src\Skr.Tebloman.Ui.Desktop\Tebloman.ico = src\Skr.Tebloman.Ui.Desktop\Tebloman.ico
+		nuspec\tebloman.nuspec = nuspec\tebloman.nuspec
+		src\VersionInfo.cs = src\VersionInfo.cs
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skr.Tebloman.Ui.Desktop", "src\Skr.Tebloman.Ui.Desktop\Skr.Tebloman.Ui.Desktop.csproj", "{8D6989F9-771B-40B5-9D10-A292DC740CF1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skr.Tebloman.Ui", "src\Skr.Tebloman.Ui\Skr.Tebloman.Ui.csproj", "{C7341178-3F06-41A3-83E1-658616BF6428}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skr.Tebloman.Common.Data", "src\Skr.Tebloman.Common.Data\Skr.Tebloman.Common.Data.csproj", "{3B663693-43D3-4FAC-AFA7-F6FF3069CFA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skr.Tebloman.Infrastructure.Storage", "src\Skr.Tebloman.Infrastructure.Storage\Skr.Tebloman.Infrastructure.Storage.csproj", "{848AC142-9F83-481B-BB83-B20A3EBED95F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skr.Tebloman.Common.Data.Test", "test\Skr.Tebloman.Common.Data.Test\Skr.Tebloman.Common.Data.Test.csproj", "{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D6989F9-771B-40B5-9D10-A292DC740CF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D6989F9-771B-40B5-9D10-A292DC740CF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D6989F9-771B-40B5-9D10-A292DC740CF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D6989F9-771B-40B5-9D10-A292DC740CF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7341178-3F06-41A3-83E1-658616BF6428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7341178-3F06-41A3-83E1-658616BF6428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7341178-3F06-41A3-83E1-658616BF6428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7341178-3F06-41A3-83E1-658616BF6428}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B663693-43D3-4FAC-AFA7-F6FF3069CFA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B663693-43D3-4FAC-AFA7-F6FF3069CFA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B663693-43D3-4FAC-AFA7-F6FF3069CFA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B663693-43D3-4FAC-AFA7-F6FF3069CFA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{848AC142-9F83-481B-BB83-B20A3EBED95F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{848AC142-9F83-481B-BB83-B20A3EBED95F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{848AC142-9F83-481B-BB83-B20A3EBED95F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{848AC142-9F83-481B-BB83-B20A3EBED95F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AC0F49CD-CBAF-42ED-ACE5-9A2AD11A69F2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A1E572FC-0F2F-4355-9A89-433BE6C48F1E}
+	EndGlobalSection
+EndGlobal
