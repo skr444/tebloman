@@ -23,11 +23,17 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
     {
         private readonly IPlaceholderTagRepository placeholderTagRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
+        private readonly IAppInfoService appInfoService;
 
         private PlaceholderTagListItemViewModel? placeholder;
         private ReplacementSource? replacementSource;
         private string? statusText;
         private readonly CancellationTokenSource cancellationTokenSource;
+
+        /// <summary>
+        /// Gets the window title.
+        /// </summary>
+        public string WindowTitle => $"{appInfoService.AppName} - Placeholder Tag Editor";
 
         /// <summary>
         /// Gets a list of all available replacement sources.
@@ -203,10 +209,12 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         /// <param name="fileStorage">File storage service.</param>
         /// <param name="placeholderTagService">Placeholder tag service.</param>
-        public PlaceholderTagEditorViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService)
+        public PlaceholderTagEditorViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService,
+            IAppInfoService infoService)
         {
             placeholderTagRepository = fileStorage.GetRepository<IPlaceholderTagRepository>();
             replacementSourceRepository = fileStorage.GetRepository<IReplacementSourceRepository>();
+            appInfoService = infoService;
 
             placeholder = new PlaceholderTagListItemViewModel(placeholderTagService.GetPlaceholder(placeholderTagRepository));
 

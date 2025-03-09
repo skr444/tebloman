@@ -6,7 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         
-        Title="Tebloman"
+        Title="{Binding WindowTitle}"
         Height="750"
         Width="1000"
         MinHeight="600"
@@ -54,6 +54,7 @@
                 <Button Content="Exit" Command="{Binding ExitCommand}"/>
                 <Button Content="Load from disk" Command="{Binding LoadFromDiskCommand}"/>
                 <Button Content="Save to disk" Command="{Binding SaveToDiskCommand}"/>
+                <Button Content="About" Command="{Binding AboutCommand}"/>
             </MenuItem>
             <MenuItem Header="Edit" VerticalAlignment="Stretch">
                 <Button Content="Placeholders..." Command="{Binding EditPlaceholderCommand}"/>

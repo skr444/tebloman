@@ -40,8 +40,10 @@ namespace Skr.Tebloman.Ui.Desktop
                 .AddSingleton<IFileStorage, FileStorage>(
                     _ => new FileStorage(storageDirectory))
                 .AddSingleton<IPlaceholderTagService, PlaceholderTagService>()
+                .AddSingleton<IAppInfoService, AppInfoService>()
                 .AddTransient<MainWindowViewModel>()
                 .AddTransient<PlaceholderTagEditorViewModel>()
+                .AddTransient<AboutWindowViewModel>()
                 .BuildServiceProvider());
 
             base.OnStartup(e);
