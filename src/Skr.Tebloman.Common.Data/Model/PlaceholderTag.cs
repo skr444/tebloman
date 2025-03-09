@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Skr.Tebloman.Common.Data.Model
@@ -59,7 +60,7 @@ namespace Skr.Tebloman.Common.Data.Model
         public void Build()
         {
             instance = new Regex(
-                $"\\{StartMarker}{Pattern}(\\:(?<Selector>Date|Time|Weekday))*?\\{EndMarker}",
+                $"\\{StartMarker}{Pattern}(\\:(?<Selector>Date|Weekday))*?(\\:(?<Format>[YyMmDdIi]))*?(\\:(?<Culture>[a-z]{{2}}\\-[A-Z]{{2}}))*?\\{EndMarker}",
                 RegexOptions.Compiled | RegexOptions.CultureInvariant);
         }
 
@@ -80,22 +81,34 @@ namespace Skr.Tebloman.Common.Data.Model
 
                 if (source.IsDateSource)
                 {
-                    DateTime candidate = source.Date ?? DateTime.Now;
+                    DateTime dateCandidate = source.Date ?? DateTime.Now;
+                    string candidate = dateCandidate.ToString();
 
-                    switch (x.Groups["Selector"]?.Value)
+                    string? format = x.Groups["Format"]?.Value;
+                    if (!String.IsNullOrEmpty(format))
                     {
-                        case "Date":
-                            return candidate.ToShortDateString();
+                        if ((format == "i") || (format == "I"))
+                        {
+                            return dateCandidate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        }
 
-                        case "Time":
-                            return candidate.ToShortTimeString();
-
-                        case "Weekday":
-                            return candidate.DayOfWeek.ToString();
-
-                        default:
-                            return candidate.ToString("D");
+                        string? culture = x.Groups["Culture"]?.Value;
+                        if (String.IsNullOrEmpty(culture))
+                        {
+                            return dateCandidate.ToString(format);
+                        }
+                        else
+                        {
+                            return dateCandidate.ToString(format, CultureInfo.CreateSpecificCulture(culture));
+                        }
                     }
+
+                    return (x.Groups["Selector"]?.Value) switch
+                    {
+                        "Date" => dateCandidate.ToShortDateString(),
+                        "Weekday" => dateCandidate.DayOfWeek.ToString(),
+                        _ => dateCandidate.ToString("D"),
+                    };
                 }
 
                 return source.Text ?? Replacement;
