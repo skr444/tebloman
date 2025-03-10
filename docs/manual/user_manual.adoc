@@ -1,18 +1,37 @@
 = Tebloman - Text Block Manager
 :imagesdir: ./resources/images
 :author: skr444
+:sectnums:
 :toc: right
 :toclevels: 3
-:revnumber: 1.0
+:xrefstyle: full
+:revnumber: 1.1
+
+// URLs
+:url-date-format-specifiers: https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#table-of-format-specifiers
+:url-culture-types-enum: https://learn.microsoft.com/en-us/dotnet/api/system.globalization.culturetypes?view=net-9.0
+:url-iso-639-1: https://en.wikipedia.org/wiki/ISO_639-1
+:url-iso-3166-1-alpha-2-codes: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
 
 [.big]
 *Change history*
 
+[cols="2,2,2,1,5a"]
 |===
-| Date | Document version | Author | Remarks
+| Date | Document version | Software version | Author | Remarks
+
+| 2025-03-10
+| 1.1
+| 1.1.0
+| skr444
+| - Displaying section numbers.
+  - Updated <<Date part identifiers>>.
+  - Added <<Date format identifiers>>.
+  - Added <<Locale identifiers>>.
 
 | 2025-03-05
 | 1.0
+| 1.0.0
 | skr444
 | Created document.
 |===
@@ -68,15 +87,12 @@ There are two options for specifying a replacement text:
 Through the use of date part identifiers it can be controlled how dates are displayed in fragments.
 The application supports the following date part identifiers:
 
-[cols="1,2"]
+[cols="1,2a"]
 |===
 | Identifier | Effect
 
 | Date
 | Displays the short date, e.g. `10.03.2025`
-
-| Time
-| Displays the time, e.g. `08:15:00`
 
 | Weekday
 | Displays the name of the week day, e.g. `Tuesday`
@@ -88,6 +104,63 @@ Example::
 Say a placeholder named `ReturnDate` has been defined with an associated replacement source with a date.
 This placeholder would be used in a text fragment as `{ReturnDate}`.
 So, e.g., to specify that the week day is displayed, postfix `:Weekday`, which results in the placeholder tag in its entirety `{ReturnDate:Weekday}`.
+
+==== Date format identifiers
+
+Date format identifiers can be used in order to further specify the date format.
+The following format identifiers are supported:
+
+[cols="1a,5a,3"]
+|===
+| Identifier | Effect | Remark
+
+| `Y` (or `y`)
+| Displays the month and the year, e.g. `June 2025`
+.4+.^| See {url-date-format-specifiers}
+
+| `M` (or `m`)
+| Displays the month and the day of the month, e.g. `June 15`
+
+| `D`
+| Displays the long date, e.g. `Monday, June 15, 2025`
+
+| `d`
+| Displays the short date, e.g. `15/06/2025`
+
+| `I` (or `i`)
+| Displays the date in the international format, e.g. `2025-06-15`
+|
+|===
+
+These format identifiers can be specified by simply appending them to a placeholder tag after a colon `:`.
+
+Example::
+Going by the same example as for the <<Date part identifiers,date part identifiers>>, assuming the placeholder `ReturnDate` has been defined, adding the format identifier `D` would result in the full placeholder tag: `{ReturnDate:D}`
+
+==== Locale identifiers
+
+The <<Date format identifiers,date format identifiers>> are locale dependent, which is why the application supports defining locale identifiers to control the locale in which the formats should be rendered.
+
+The locale identifiers can be specified similarly as the date format identifiers by appending them after a colon `:` to the date format identifier.
+
+Example::
+If the placeholder named `ReturnDate` should display the long date for the German (`de-DE`) locale, the full placeholder tag will be: `{ReturnDate:D:de-DE}`
+
+The application supports all locale identifiers that can be represented by the {url-culture-types-enum}[CultureTypes] enum.
+These identifiers are basically a combination of a two letter language code followed by a two letter country code separated by a hyphen `-` such as:
+
+`<two-letter-language-code>-<two-letter-country-code>`
+
+The two codes follow the ISO standards below:
+
+[cols="1,3"]
+|===
+| two-letter-language-code
+| {url-iso-639-1}
+
+| two-letter-country-code
+| {url-iso-3166-1-alpha-2-codes}
+|===
 
 === Fragments
 
@@ -120,4 +193,4 @@ Click the *New* button to create a new replacement source and type a label into 
 Either type a text into the textbox below or check the *Date* checkbox and select a date.
 Then click *Save* and the created replacement source appears in the list.
 
-See section <<Placeholders>> for how to bind a replacement source to a placeholder.
+See <<Placeholders>> for how to bind a replacement source to a placeholder.
