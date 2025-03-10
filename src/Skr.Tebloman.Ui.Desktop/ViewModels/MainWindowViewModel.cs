@@ -51,6 +51,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         private readonly IPlaceholderTagRepository placeholderTagRepository;
         private readonly IFragmentRepository fragmentRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
+        private readonly IAppInfoService appInfoService;
 
         private ProfileListItemViewModel profile;
         private PlaceholderTagListItemViewModel placeholder;
@@ -59,6 +60,11 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         private FragmentSource fragmentSource;
         private string? statusText;
         private readonly CancellationTokenSource cancellationTokenSource;
+
+        /// <summary>
+        /// Gets the window title.
+        /// </summary>
+        public string WindowTitle => $"{appInfoService.AppName} - {appInfoService.AppTitle}";
 
         #region Menu
 
@@ -90,6 +96,15 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             placeholderTagRepository.Save();
             fragmentRepository.Save();
             replacementSourceRepository.Save();
+        });
+
+        /// <summary>
+        /// Opens the about window.
+        /// </summary>
+        public ICommand AboutCommand => new RelayCommand(() =>
+        {
+            var aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
         });
 
         #endregion Menu
@@ -578,12 +593,14 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         /// <param name="fileStorage">The file storage service.</param>
         /// <param name="placeholderTagService">The placeholder tag service.</param>
-        public MainWindowViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService)
+        public MainWindowViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService,
+            IAppInfoService infoService)
         {
             profileRepository = fileStorage.GetRepository<IProfileRepository>();
             placeholderTagRepository = fileStorage.GetRepository<IPlaceholderTagRepository>();
             fragmentRepository = fileStorage.GetRepository<IFragmentRepository>();
             replacementSourceRepository = fileStorage.GetRepository<IReplacementSourceRepository>();
+            appInfoService = infoService;
 
             var repaired = RepairRepositories();
 
