@@ -5,6 +5,7 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8D4A93E6-FF6B-400B-99F9-5FD0DB92B0D3}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Directory.Packages.props = Directory.Packages.props
 		src\Skr.Tebloman.Ui.Desktop\Tebloman.ico = src\Skr.Tebloman.Ui.Desktop\Tebloman.ico
 		nuspec\tebloman.nuspec = nuspec\tebloman.nuspec
