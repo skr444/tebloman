@@ -1,14 +1,10 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Skr.Tebloman.Infrastructure.Storage")]
-[assembly: AssemblyDescription("Data persistence")]
+[assembly: AssemblyTitle("Skr.Tebloman.Infrastructure.Storage.Test")]
+[assembly: AssemblyDescription("Unit tests for storage component")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("Skr.Tebloman.Infrastructure.Storage")]
-
-[assembly: InternalsVisibleTo("Skr.Tebloman.Ui.Desktop")]
-[assembly: InternalsVisibleTo("Skr.Tebloman.Infrastructure.Storage.Test")]
+[assembly: AssemblyProduct("Skr.Tebloman.Infrastructure.Storage.Test")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -16,4 +12,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("848AC142-9F83-481B-BB83-B20A3EBED95F")]
+[assembly: Guid("AC3A5D06-A26B-4F56-A437-87FE633AD8E2")]
