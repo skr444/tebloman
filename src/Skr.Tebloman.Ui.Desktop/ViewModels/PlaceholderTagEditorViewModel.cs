@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using Skr.Tebloman.Common.Data.Model;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 using Skr.Tebloman.Ui.Desktop.Views;
 using Skr.Tebloman.Ui.Helper;
 using Skr.Tebloman.Ui.Services;
 using Skr.Tebloman.Ui.ViewModels;
-using System.Threading;
 
 namespace Skr.Tebloman.Ui.Desktop.ViewModels
 {
@@ -186,12 +186,10 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         public string StatusText => statusText ?? String.Empty;
 
-        private RelayCommand newCommand;
-
         /// <summary>
         /// Creates a new placeholder.
         /// </summary>
-        public ICommand NewCommand => newCommand;
+        public ICommand NewCommand { get; }
 
         private RelayCommand saveCommand;
 
@@ -210,8 +208,9 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         /// <param name="fileStorage">File storage service.</param>
         /// <param name="placeholderTagService">Placeholder tag service.</param>
-        public PlaceholderTagEditorViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService,
-            IAppInfoService infoService)
+        public PlaceholderTagEditorViewModel(ILifecycleManager lifecycle, IFileStorage fileStorage,
+            IPlaceholderTagService placeholderTagService, IAppInfoService infoService)
+            : base(lifecycle)
         {
             placeholderTagRepository = fileStorage.GetRepository<IPlaceholderTagRepository>();
             replacementSourceRepository = fileStorage.GetRepository<IReplacementSourceRepository>();
@@ -221,7 +220,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            newCommand = new RelayCommand(() =>
+            NewCommand = new RelayCommand(() =>
             {
                 placeholder = new PlaceholderTagListItemViewModel(new PlaceholderTag());
                 OnPropertyChanged(nameof(Pattern));
