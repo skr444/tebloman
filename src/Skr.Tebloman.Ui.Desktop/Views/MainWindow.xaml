@@ -9,7 +9,7 @@
         Title="{Binding WindowTitle}"
         Height="750"
         Width="1000"
-        MinHeight="600"
+        MinHeight="700"
         MinWidth="700"
         >
     <Window.Resources>
@@ -31,22 +31,24 @@
         <sys:Int32 x:Key="UiRightColumnIndex">2</sys:Int32>
         
         <!-- row indices -->
-        <sys:Int32 x:Key="UiConfigRowIndex">1</sys:Int32>
-        <sys:Int32 x:Key="UiOutputRowIndex">3</sys:Int32>
+        <sys:Int32 x:Key="UiConfigRowIndex">2</sys:Int32>
+        <sys:Int32 x:Key="UiOutputRowIndex">4</sys:Int32>
+        <sys:Int32 x:Key="UiStatusRowIndex">6</sys:Int32>
     </Window.Resources>
-    <Grid Margin="15">
+    <Grid Margin="12">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*" MaxWidth="500"/>
             <ColumnDefinition Width="6"/>
             <ColumnDefinition Width="6*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/> <!-- 0 menu -->
+            <RowDefinition Height="7"/>   <!-- 1 separator -->
+            <RowDefinition Height="7*"/>   <!-- 2 upper part (config row) -->
+            <RowDefinition Height="7"/>   <!-- 3 separator -->
+            <RowDefinition Height="3*"/>   <!-- 4 lower part (output row) -->
+            <RowDefinition Height="7"/>   <!-- 5 separator -->
+            <RowDefinition Height="Auto"/> <!-- 6 status -->
         </Grid.RowDefinitions>
         
         <Menu Grid.ColumnSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -54,6 +56,7 @@
                 <Button Content="Exit" Command="{Binding ExitCommand}"/>
                 <Button Content="Load from disk" Command="{Binding LoadFromDiskCommand}"/>
                 <Button Content="Save to disk" Command="{Binding SaveToDiskCommand}"/>
+                <Button Content="Open app data folder" Command="{Binding OpenDataFolderCommand}"/>
                 <Button Content="About" Command="{Binding AboutCommand}"/>
             </MenuItem>
             <MenuItem Header="Edit" VerticalAlignment="Stretch">
@@ -125,7 +128,7 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Row="9" Content="Editor" Command="{Binding EditPlaceholderCommand}"/>
+                <Button Content="Editor" Command="{Binding EditPlaceholderCommand}"/>
                 <Button Grid.Column="1" Content="Remove" Command="{Binding RemovePlaceholderCommand}"/>
             </Grid>
         </Grid>
@@ -137,54 +140,75 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="3*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="4*"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/> <!--0-->
+                <RowDefinition Height="Auto"/> <!--1-->
+                <RowDefinition Height="10"/>   <!--2-->
+                <RowDefinition Height="4*"/>  <!--3-->
+                <RowDefinition Height="10"/>   <!--4-->
+                <RowDefinition Height="Auto"/> <!--5-->
+                <RowDefinition Height="3*"/> <!--6-->
+                <RowDefinition Height="Auto"/> <!--7-->
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" Grid.ColumnSpan="2" Content="Profile" Style="{StaticResource TitleLabelStyle}"/>
             <TextBox Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding SelectedProfileName}"/>
             <!-- Row 2 -->
 
-            <Label Grid.Row="3" Content="Profile fragments" Style="{StaticResource TitleLabelStyle}"/>
-            <ListView Grid.Row="4"
-                      ItemsSource="{Binding ProfileFragments}"
-                      SelectedItem="{Binding SelectedProfileFragment, UpdateSourceTrigger=PropertyChanged}"
-                      Background="{Binding ProfileFragmentsBackground, Mode=OneWay}"/>
-            <Grid Grid.Row="5">
+            <Grid Grid.Row="3" Grid.ColumnSpan="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="Remove from profile" Command="{Binding RemoveFragmentFromProfileCommand}"/>
-                <Button Grid.Column="1" Content="/\" Command="{Binding MoveFragmentUpCommand}"/>
-                <Button Grid.Column="2" Content="\/" Command="{Binding MoveFragmentDownCommand}"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <Label Grid.Row="0" Content="{Binding FragmentListLabel}" Style="{StaticResource TitleLabelStyle}"/>
+                <ListView Grid.Row="1"
+                      ItemsSource="{Binding Fragments}"
+                      SelectedItem="{Binding SelectedFragment, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"/>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="Remove from profile" Command="{Binding RemoveFragmentFromProfileCommand}"/>
+                    <Button Grid.Column="1" Content="/\" Command="{Binding MoveFragmentUpCommand}"/>
+                    <Button Grid.Column="2" Content="\/" Command="{Binding MoveFragmentDownCommand}"/>
+                </Grid>
+                <Button Grid.Row="3" Grid.Column="1" Content="Add to profile" Command="{Binding AddFragmentToProfileCommand}"/>
+
+                <Grid Grid.Row="1" Grid.Column="1"
+                      Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <RadioButton Grid.Row="0"
+                                 VerticalAlignment="Center"
+                                 Content="All fragments"
+                                 IsChecked="{Binding IsGlobalFragments}"/>
+                    <RadioButton Grid.Row="1"
+                                 VerticalAlignment="Center"
+                                 Content="In current profile"
+                                 IsChecked="{Binding IsProfileFragments}"/>
+                </Grid>
             </Grid>
-            <!-- Row 6-->
+            <!-- Row 4-->
 
-            <Label Grid.Row="3" Grid.Column="1" Content="Available fragments" Style="{StaticResource TitleLabelStyle}"/>
-            <ListView Grid.Row="4" Grid.Column="1"
-                      ItemsSource="{Binding GlobalFragments}"
-                      SelectedItem="{Binding SelectedGlobalFragment, UpdateSourceTrigger=PropertyChanged}"
-                      Background="{Binding GlobalFragmentsBackground, Mode=OneWay}"/>
-            <Button Grid.Row="5" Grid.Column="1" Content="Add to profile" Command="{Binding AddFragmentToProfileCommand}"/>
-
-            <Label Grid.Row="7" Content="Fragment" Style="{StaticResource TitleLabelStyle}"/>
-            <TextBox Grid.Row="7" Grid.Column="1"
-                     Text="{Binding FragmentName}" VerticalContentAlignment="Center"/>
-            <TextBox Grid.Row="8" Grid.ColumnSpan="2"
+            <Label Grid.Row="5" Content="Fragment" Style="{StaticResource TitleLabelStyle}"/>
+            <TextBox Grid.Row="5" Grid.Column="1"
+                     Text="{Binding FragmentName}" VerticalContentAlignment="Center"
+                     IsEnabled="{Binding IsFragmentNameEnabled}"/>
+            <TextBox Grid.Row="6" Grid.ColumnSpan="2"
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
-                     Text="{Binding FragmentText}"/>
-            <Grid Grid.Row="9" Grid.ColumnSpan="2">
+                     Text="{Binding FragmentText}"
+                     IsEnabled="{Binding IsFragmentTextEnabled}"/>
+            <Grid Grid.Row="7" Grid.ColumnSpan="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -195,7 +219,6 @@
                 <Button Grid.Column="1" Content="Save" Command="{Binding SaveFragmentCommand}"/>
                 <Button Grid.Column="2" Content="Remove" Command="{Binding RemoveFragmentCommand}"/>
             </Grid>
-            <!-- Row 10-->
         </Grid>
 
         <Grid Grid.Row="{StaticResource UiOutputRowIndex}">
@@ -259,17 +282,16 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
             <Label Content="Output" Style="{StaticResource TitleLabelStyle}"/>
             <Button Grid.Column="1" Content="Copy to clip board"
                     Command="{Binding CopyToClipBoardCommand}"/>
             <TextBox Grid.Row="1" Grid.ColumnSpan="2"
-                 Height="200"
                  Text="{Binding ResultText, Mode=OneWay}"/>
         </Grid>
 
-        <StatusBar Grid.Row="5" Grid.ColumnSpan="3" VerticalAlignment="Bottom">
+        <StatusBar Grid.Row="{StaticResource UiStatusRowIndex}" Grid.ColumnSpan="3" VerticalAlignment="Bottom">
             <StatusBarItem Content="{Binding StatusText, Mode=OneWay}"/>
         </StatusBar>
     </Grid>

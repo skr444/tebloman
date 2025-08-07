@@ -20,6 +20,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <NoWarn />
+    <DocumentationFile>..\..\build\$(Configuration)\Skr.Tebloman.Common.Data.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,7 +28,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <NoWarn />
-    <DocumentationFile>..\..\build\$(Configuration)\Skr.Tebloman.Common.Data.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

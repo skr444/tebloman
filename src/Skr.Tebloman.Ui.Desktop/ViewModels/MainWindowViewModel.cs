@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-using CommunityToolkit.Mvvm.ComponentModel;
-
-using Skr.Tebloman.Infrastructure.Storage.Api;
-using Skr.Tebloman.Ui.ViewModels;
-using Skr.Tebloman.Common.Data.Model;
 using CommunityToolkit.Mvvm.Input;
+
+using Skr.Tebloman.Common.Data;
+using Skr.Tebloman.Common.Data.Model;
+using Skr.Tebloman.Infrastructure.Storage.Api;
+using Skr.Tebloman.Ui.Helper;
+using Skr.Tebloman.Ui.ViewModels;
 using Skr.Tebloman.Ui.Desktop.Views;
 using Skr.Tebloman.Ui.Services;
-using System.Windows.Media;
-using Skr.Tebloman.Common.Data;
-using System.Threading.Tasks;
-using System.Threading;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 
 namespace Skr.Tebloman.Ui.Desktop.ViewModels
 {
     /// <summary>
     /// Provides interaction logic for the <see cref="MainWindow"/> view.
     /// </summary>
-    internal sealed class MainWindowViewModel : ObservableObject
+    internal sealed class MainWindowViewModel : BaseViewModel
     {
         #region Types
 
@@ -45,13 +46,15 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
 
         #endregion Types
 
-        private const int StatusMessageDurationSeconds = 3;
+        private const int StatusMessageDurationSeconds = 4;
 
         private readonly IProfileRepository profileRepository;
         private readonly IPlaceholderTagRepository placeholderTagRepository;
         private readonly IFragmentRepository fragmentRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
         private readonly IAppInfoService appInfoService;
+        private readonly IFileSystemService fileSystemService;
+        private readonly IFileStorage storage;
 
         private ProfileListItemViewModel profile;
         private PlaceholderTagListItemViewModel placeholder;
@@ -59,7 +62,6 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         private ReplacementSourceListItemViewModel replacementSource;
         private FragmentSource fragmentSource;
         private string? statusText;
-        private readonly CancellationTokenSource cancellationTokenSource;
 
         /// <summary>
         /// Gets the window title.
@@ -71,20 +73,56 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// <summary>
         /// Terminates this application.
         /// </summary>
-        public ICommand ExitCommand => new RelayCommand(() =>
-        {
-            Application.Current.Shutdown();
-        });
+        public ICommand ExitCommand => new RelayCommand(RequestClose);
 
         /// <summary>
         /// Loads the data repositories from disk.
         /// </summary>
         public ICommand LoadFromDiskCommand => new RelayCommand(() =>
         {
-            OnPropertyChanged(nameof(Placeholders));
-            OnPropertyChanged(nameof(GlobalFragments));
-            OnPropertyChanged(nameof(Profiles));
-            OnPropertyChanged(nameof(ReplacementSources));
+            NotifyStatus("Loading data from disk..");
+
+            storage.Load();
+            var repaired = RepairRepositories();
+
+            if ((profile != null) && profileRepository.TryGet(profile?.Item.Id ?? Guid.Empty, out Profile? reloadedProfile))
+            {
+                profile = new ProfileListItemViewModel(reloadedProfile!);
+                OnPropertyChanged(nameof(Profiles));
+            }
+
+            if (   (placeholder != null)
+                && placeholderTagRepository.TryGet(placeholder?.Item.Id ?? Guid.Empty, out PlaceholderTag? reloadedPlaceholder))
+            {
+                placeholder = new PlaceholderTagListItemViewModel(reloadedPlaceholder!);
+                OnPropertyChanged(nameof(Placeholders));
+            }
+
+            if (   (replacementSource != null)
+                && replacementSourceRepository
+                    .TryGet(replacementSource?.Item.Id ?? Guid.Empty, out ReplacementSource? reloadedreplacementSource))
+            {
+                replacementSource = new ReplacementSourceListItemViewModel(reloadedreplacementSource!);
+                OnPropertyChanged(nameof(Placeholders));
+            }
+
+            fragmentSource = FragmentSource.Global;
+            OnPropertyChanged(nameof(IsGlobalFragments));
+            OnPropertyChanged(nameof(IsProfileFragments));
+            OnPropertyChanged(nameof(Fragments));
+            OnPropertyChanged(nameof(ResultText));
+
+            if (   (fragment != null)
+                && fragmentRepository.TryGet(fragment?.Item.Id ?? Guid.Empty, out Fragment? reloadedFragment))
+            {
+                OnPropertyChanged(nameof(FragmentName));
+                OnPropertyChanged(nameof(FragmentText));
+            }
+
+            NotifyStatus(
+                (repaired > 0)
+                ? $"Successfully loaded data from disk. Fixed {repaired} data consistency issues during loading."
+                : "Successfully loaded data from disk.");
         });
 
         /// <summary>
@@ -92,10 +130,14 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         public ICommand SaveToDiskCommand => new RelayCommand(() =>
         {
-            profileRepository.Save();
-            placeholderTagRepository.Save();
-            fragmentRepository.Save();
-            replacementSourceRepository.Save();
+            NotifyStatus("Saving data to disk..");
+            storage.Save();
+            NotifyStatus("Successfully saved data to disk.");
+        });
+
+        public ICommand OpenDataFolderCommand => new RelayCommand(() =>
+        {
+            fileSystemService.OpenApplicationDataFolderInExplorer();
         });
 
         /// <summary>
@@ -128,12 +170,23 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                 if (value != null)
                 {
                     profile = value;
+                    fragmentSource = FragmentSource.Profile;
+                    OnPropertyChanged(nameof(IsGlobalFragments));
+                    OnPropertyChanged(nameof(IsProfileFragments));
+                    OnPropertyChanged(nameof(Fragments));
+                    OnPropertyChanged(nameof(SelectedFragment));
+                    OnPropertyChanged(nameof(FragmentListLabel));
+                    OnPropertyChanged(nameof(IsFragmentNameEnabled));
+                    OnPropertyChanged(nameof(IsFragmentTextEnabled));
                     OnPropertyChanged(nameof(SelectedProfileName));
-                    OnPropertyChanged(nameof(ProfileFragments));
                     OnPropertyChanged(nameof(ResultText));
                 }
+                newFragmentCommand.NotifyCanExecuteChanged();
+                saveFragmentCommand.NotifyCanExecuteChanged();
+                removeFragmentCommand.NotifyCanExecuteChanged();
                 saveProfileCommand.NotifyCanExecuteChanged();
                 removeProfileCommand.NotifyCanExecuteChanged();
+                addFragmentToProfileCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -231,54 +284,52 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
 
         #region Fragments
 
-        /// <summary>
-        /// Gets a list of all fragments assigned to the currently selected profile.
-        /// </summary>
-        public IEnumerable<FragmentListItemViewModel> ProfileFragments => SelectedProfile?.Item.Fragments.OrderBy(x => x.Value).Select(x =>
+        public string FragmentListLabel
         {
-            if (fragmentRepository.TryGet(x.Key, out Fragment? fragmentCandidate))
+            get
             {
-                return new FragmentListItemViewModel(fragmentCandidate!);
-            }
-            return new FragmentListItemViewModel(new Fragment());
-        }) ?? Array.Empty<FragmentListItemViewModel>();
-
-        /// <summary>
-        /// Gets a list of all available fragments.
-        /// </summary>
-        public IEnumerable<FragmentListItemViewModel> GlobalFragments =>
-            fragmentRepository.All().Select(x => new FragmentListItemViewModel(x));
-
-        /// <summary>
-        /// Gets or sets the currently selected fragment associated with the currently selected profile.
-        /// </summary>
-        public FragmentListItemViewModel SelectedProfileFragment
-        {
-            get => SelectedFragment;
-            set
-            {
-                fragmentSource = FragmentSource.Profile;
-                SelectedFragment = value;
+                switch (fragmentSource)
+                {
+                    case FragmentSource.Global:
+                        return "Available Fragments";
+                    case FragmentSource.Profile:
+                        return "Profile Fragments";
+                    default:
+                        return "Fragments";
+                }
             }
         }
 
         /// <summary>
-        /// Gets or sets the currently selected fragment from the fragment pool.
+        /// Gets a list of all fragments assigned to the currently selected profile.
         /// </summary>
-        public FragmentListItemViewModel SelectedGlobalFragment
+        public IEnumerable<FragmentListItemViewModel> Fragments
         {
-            get => SelectedFragment;
-            set
+            get
             {
-                fragmentSource = FragmentSource.Global;
-                SelectedFragment = value;
+                switch (fragmentSource)
+                {
+                    case FragmentSource.Global:
+                        return fragmentRepository.All().Select(x => new FragmentListItemViewModel(x));
+                    case FragmentSource.Profile:
+                        return SelectedProfile?.Item.Fragments.OrderBy(x => x.Value).Select(x =>
+                        {
+                            if (fragmentRepository.TryGet(x.Key, out Fragment? fragmentCandidate))
+                            {
+                                return new FragmentListItemViewModel(fragmentCandidate!);
+                            }
+                            return new FragmentListItemViewModel(new Fragment());
+                        }) ?? Array.Empty<FragmentListItemViewModel>();
+                    default:
+                        return Array.Empty<FragmentListItemViewModel>();
+                }
             }
         }
 
         /// <summary>
         /// Gets or sets the currently selected fragment.
         /// </summary>
-        private FragmentListItemViewModel SelectedFragment
+        public FragmentListItemViewModel SelectedFragment
         {
             get => fragment ?? new FragmentListItemViewModel(new Fragment());
             set
@@ -286,14 +337,15 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                 fragment = value ?? new FragmentListItemViewModel(new Fragment());
                 addFragmentToProfileCommand.NotifyCanExecuteChanged();
                 removeFragmentFromProfileCommand.NotifyCanExecuteChanged();
+                newFragmentCommand.NotifyCanExecuteChanged();
                 saveFragmentCommand.NotifyCanExecuteChanged();
                 removeFragmentCommand.NotifyCanExecuteChanged();
                 moveFragmentDownCommand.NotifyCanExecuteChanged();
                 moveFragmentUpCommand.NotifyCanExecuteChanged();
                 OnPropertyChanged(nameof(FragmentName));
                 OnPropertyChanged(nameof(FragmentText));
-                OnPropertyChanged(nameof(ProfileFragmentsBackground));
-                OnPropertyChanged(nameof(GlobalFragmentsBackground));
+                OnPropertyChanged(nameof(IsFragmentNameEnabled));
+                OnPropertyChanged(nameof(IsFragmentTextEnabled));
             }
         }
 
@@ -330,18 +382,72 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         }
 
         /// <summary>
-        /// Gets or sets the background color of the profile fragment list.
+        /// Gets a value indicating whether the fragment name textbox is enabled.
         /// </summary>
-        public Brush ProfileFragmentsBackground => (fragmentSource == FragmentSource.Profile)
-            ? new SolidColorBrush(Color.FromRgb(210, 255, 220))
-            : new SolidColorBrush(Colors.White);
+        public bool IsGlobalFragments
+        {
+            get => (fragmentSource == FragmentSource.Global);
+            set
+            {
+                ToggleFragmentMode(value);
+            }
+        }
 
         /// <summary>
-        /// Gets or sets the background color of the fragment pool list.
+        /// Gets a value indicating whether the fragment text textbox is enabled.
         /// </summary>
-        public Brush GlobalFragmentsBackground => (fragmentSource == FragmentSource.Global)
-            ? new SolidColorBrush(Color.FromRgb(210, 255, 220))
-            : new SolidColorBrush(Colors.White);
+        public bool IsProfileFragments
+        {
+            get => (fragmentSource == FragmentSource.Profile);
+            set
+            {
+                ToggleFragmentMode(!value);
+            }
+        }
+
+        private void ToggleFragmentMode(bool isGlobal)
+        {
+            if (isGlobal)
+            {
+                fragmentSource = FragmentSource.Global;
+                fragment = null!;
+            }
+            else
+            {
+                fragmentSource = FragmentSource.Profile;
+            }
+
+            OnPropertyChanged(nameof(FragmentListLabel));
+            OnPropertyChanged(nameof(Fragments));
+            OnPropertyChanged(nameof(FragmentName));
+            OnPropertyChanged(nameof(FragmentText));
+            OnPropertyChanged(nameof(IsFragmentNameEnabled));
+            OnPropertyChanged(nameof(IsFragmentTextEnabled));
+            removeFragmentFromProfileCommand.NotifyCanExecuteChanged();
+            addFragmentToProfileCommand.NotifyCanExecuteChanged();
+            moveFragmentDownCommand.NotifyCanExecuteChanged();
+            moveFragmentUpCommand.NotifyCanExecuteChanged();
+            newFragmentCommand.NotifyCanExecuteChanged();
+            saveFragmentCommand.NotifyCanExecuteChanged();
+            removeFragmentCommand.NotifyCanExecuteChanged();
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the fragment name textbox is enabled.
+        /// </summary>
+        public bool IsFragmentNameEnabled => (fragmentSource == FragmentSource.Global);
+
+        /// <summary>
+        /// Gets a value indicating whether the fragment text textbox is enabled.
+        /// </summary>
+        public bool IsFragmentTextEnabled => (fragmentSource == FragmentSource.Global);
+
+        private readonly RelayCommand fragmentSelectionModeChangedCommand;
+
+        /// <summary>
+        /// Switches between fragments display mode (all <> profile).
+        /// </summary>
+        public ICommand FragmentSelectionModeChangedCommand => fragmentSelectionModeChangedCommand;
 
         private readonly RelayCommand addFragmentToProfileCommand;
 
@@ -374,7 +480,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         private readonly RelayCommand newFragmentCommand;
 
         /// <summary>
-        /// Creates a new black fragment.
+        /// Creates a new blank fragment.
         /// </summary>
         public ICommand NewFragmentCommand => newFragmentCommand;
 
@@ -548,7 +654,8 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 var text = new StringBuilder();
                 bool first = true;
-                foreach (FragmentListItemViewModel fragment in ProfileFragments)
+
+                foreach (Guid fragmentId in profile.Item.Fragments.OrderBy(x => x.Value).Select(x => x.Key))
                 {
                     if (first)
                     {
@@ -559,7 +666,10 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                         text.AppendLine();
                     }
 
-                    text.AppendLine(ReplacePlaceholders(fragment.Item, placeholderTagRepository.All()));
+                    if (fragmentRepository.TryGet(fragmentId, out Fragment? fragment))
+                    {
+                        text.AppendLine(ReplacePlaceholders(fragment!, placeholderTagRepository.All()));
+                    }
                 }
                 return text.ToString();
             }
@@ -584,23 +694,23 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         public string StatusText => statusText ?? String.Empty;
 
         /// <summary>
-        /// Terminates asyncronous operations and closes the main window.
-        /// </summary>
-        public ICommand WindowClosingCommand { get; }
-
-        /// <summary>
         /// Creates a new instance of <see cref="MainWindowViewModel"/>.
         /// </summary>
+        /// <param name="lifecycle">The application lifecycle management service.</param>
         /// <param name="fileStorage">The file storage service.</param>
         /// <param name="placeholderTagService">The placeholder tag service.</param>
-        public MainWindowViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService,
-            IAppInfoService infoService)
+        /// <param name="fileSystem">The filesystem service.</param>
+        public MainWindowViewModel(ILifecycleManager lifecycle, IFileStorage fileStorage,
+            IPlaceholderTagService placeholderTagService, IAppInfoService infoService, IFileSystemService fileSystem)
+            : base(lifecycle)
         {
-            profileRepository = fileStorage.GetRepository<IProfileRepository>();
-            placeholderTagRepository = fileStorage.GetRepository<IPlaceholderTagRepository>();
-            fragmentRepository = fileStorage.GetRepository<IFragmentRepository>();
-            replacementSourceRepository = fileStorage.GetRepository<IReplacementSourceRepository>();
+            storage = fileStorage;
+            profileRepository = storage.GetRepository<IProfileRepository>();
+            placeholderTagRepository = storage.GetRepository<IPlaceholderTagRepository>();
+            fragmentRepository = storage.GetRepository<IFragmentRepository>();
+            replacementSourceRepository = storage.GetRepository<IReplacementSourceRepository>();
             appInfoService = infoService;
+            fileSystemService = fileSystem;
 
             var repaired = RepairRepositories();
 
@@ -610,7 +720,15 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             replacementSource = new ReplacementSourceListItemViewModel(replacementSourceRepository.All().FirstOrDefault() ?? new ReplacementSource());
             fragmentSource = FragmentSource.Global;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            Task.Run(async () =>
+            {
+                const int loadCompletedMessageDelaySeconds = 2;
+                await Task.Delay(TimeSpan.FromSeconds(loadCompletedMessageDelaySeconds), lifecycleManager.Token);
+                await DisplayStatusMessage(lifecycleManager.Token,
+                    (repaired > 0)
+                    ? $"Data loaded from disk. Fixed {repaired} data consistency issues during loading."
+                    : "Data loaded from disk.");
+            }, lifecycleManager.Token);
 
             // profile
             newProfileCommand = new RelayCommand(() =>
@@ -629,6 +747,10 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 if (PromptRemove(profile.Item) == MessageBoxResult.Yes)
                 {
+                    if (fragment?.Item.Profiles.Remove(profile.Item.Id) ?? false)
+                    {
+                        fragmentRepository.AddOrUpdate(fragment.Item);
+                    }
                     profileRepository.Delete(profile.Item.Id);
                     SelectedProfile = new ProfileListItemViewModel(profileRepository.All().FirstOrDefault() ?? new Profile());
                     OnPropertyChanged(nameof(Profiles));
@@ -674,6 +796,25 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             });
 
             // fragment
+            fragmentSelectionModeChangedCommand = new RelayCommand(() =>
+            {
+                if (IsGlobalFragments)
+                {
+                    fragmentSource = FragmentSource.Global;
+                }
+                else if (IsProfileFragments)
+                {
+                    fragmentSource = FragmentSource.Profile;
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+
+                OnPropertyChanged(nameof(Fragments));
+                OnPropertyChanged(nameof(FragmentName));
+                OnPropertyChanged(nameof(FragmentText));
+            });
             addFragmentToProfileCommand = new RelayCommand(() =>
             {
                 if (   !profile.Item.Fragments.Keys.Any(x => fragment.Item.Id == x)
@@ -683,7 +824,6 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                     profile.Item.AddFragment(fragment.Item.Id);
                     fragmentRepository.AddOrUpdate(fragment.Item);
                     profileRepository.AddOrUpdate(profile.Item);
-                    OnPropertyChanged(nameof(ProfileFragments));
                     OnPropertyChanged(nameof(ResultText));
                 }
             }, () =>
@@ -698,8 +838,8 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                     fragment.Item.Profiles.Remove(profile.Item.Id);
                     fragmentRepository.AddOrUpdate(fragment.Item);
                     profileRepository.AddOrUpdate(profile.Item);
-                    OnPropertyChanged(nameof(ProfileFragments));
                     OnPropertyChanged(nameof(ResultText));
+                    OnPropertyChanged(nameof(Fragments));
                 }
             }, () =>
             {
@@ -710,8 +850,8 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 profile.Item.MoveFragmentUp(fragment.Item.Id);
                 profileRepository.AddOrUpdate(profile.Item);
-                OnPropertyChanged(nameof(ProfileFragments));
                 OnPropertyChanged(nameof(ResultText));
+                OnPropertyChanged(nameof(Fragments));
             }, () =>
             {
                 return    (fragmentSource == FragmentSource.Profile)
@@ -722,7 +862,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 profile.Item.MoveFragmentDown(fragment.Item.Id);
                 profileRepository.AddOrUpdate(profile.Item);
-                OnPropertyChanged(nameof(ProfileFragments));
+                OnPropertyChanged(nameof(Fragments));
                 OnPropertyChanged(nameof(ResultText));
             }, () =>
             {
@@ -733,19 +873,19 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             saveFragmentCommand = new RelayCommand(() =>
             {
                 fragmentRepository.AddOrUpdate(fragment.Item);
-                OnPropertyChanged(nameof(GlobalFragments));
-                OnPropertyChanged(nameof(ProfileFragments));
+                OnPropertyChanged(nameof(Fragments));
                 OnPropertyChanged(nameof(ResultText));
                 NotifySaved(fragment.Item);
             }, () =>
             {
-                return !String.IsNullOrEmpty(fragment?.Item.Name)
-                    && !String.IsNullOrEmpty(fragment?.Item.Text);
+                return    (fragmentSource == FragmentSource.Global)
+                       && (   !String.IsNullOrEmpty(fragment?.Item.Name)
+                           && !String.IsNullOrEmpty(fragment?.Item.Text));
             });
             newFragmentCommand = new RelayCommand(() =>
             {
                 SelectedFragment = new FragmentListItemViewModel(new Fragment());
-            });
+            }, () => (fragmentSource == FragmentSource.Global));
             removeFragmentCommand = new RelayCommand(() =>
             {
                 if (PromptRemove(fragment.Item) == MessageBoxResult.Yes)
@@ -756,12 +896,11 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                         fragment.Item.Profiles.Remove(profile.Item.Id);
                         fragmentRepository.AddOrUpdate(fragment.Item);
                         profileRepository.AddOrUpdate(profile.Item);
-                        OnPropertyChanged(nameof(ProfileFragments));
                         OnPropertyChanged(nameof(ResultText));
                     }
 
                     fragmentRepository.Delete(fragmentId);
-                    OnPropertyChanged(nameof(GlobalFragments));
+                    OnPropertyChanged(nameof(Fragments));
                     SelectedFragment = new FragmentListItemViewModel(
                         fragmentRepository.All().FirstOrDefault() ?? new Fragment());
                 }
@@ -802,21 +941,20 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 return (replacementSource != null);
             });
-
-            WindowClosingCommand = new RelayCommand<IClosable>(OnWindowClosing);
         }
+
+        #region BaseViewModel
+
+        public override bool ProcessCloseRequest()
+        {
+            lifecycleManager.Cancel();
+            Thread.Sleep(TimeSpan.FromMilliseconds(500));
+            return true;
+        }
+
+        #endregion BaseViewModel
 
         #region Helpers
-
-        /// <summary>
-        /// Proxy method for <see cref="Window.Close"/>.
-        /// Here it's used as a handler for the closed event.
-        /// </summary>
-        /// <param name="window">The instance of the window that was closed.</param>
-        private void OnWindowClosing(IClosable? window)
-        {
-            cancellationTokenSource.Cancel();
-        }
 
         /// <summary>
         /// Replaces all placeholders in a fragment with their corresponding values.
@@ -852,34 +990,116 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         {
             int repaired = 0;
 
-            var inexistingFragmentIds = new List<Guid>();
+            var emptyProfileIds = new List<Guid>();
+            foreach (var profile in profileRepository.All())
+            {
+                if (String.IsNullOrEmpty(profile.Name))
+                {
+                    emptyProfileIds.Add(profile.Id);
+                }
+            }
+            foreach (var profileId in emptyProfileIds)
+            {
+                profileRepository.Delete(profileId);
+                repaired++;
+            }
+
+            var emptyPlaceholderIds = new List<Guid>();
+            foreach (var placeholder in placeholderTagRepository.All())
+            {
+                if (String.IsNullOrEmpty(placeholder.Pattern))
+                {
+                    emptyPlaceholderIds.Add(placeholder.Id);
+                }
+            }
+            foreach (var placeholderId in emptyPlaceholderIds)
+            {
+                placeholderTagRepository.Delete(placeholderId);
+                repaired++;
+            }
+
+            var emptyReplacementSourceIds = new List<Guid>();
+            foreach (var replacementSource in replacementSourceRepository.All())
+            {
+                if (String.IsNullOrEmpty(replacementSource.Name))
+                {
+                    emptyReplacementSourceIds.Add(replacementSource.Id);
+                }
+            }
+            foreach (var replacementSourceId in emptyReplacementSourceIds)
+            {
+                replacementSourceRepository.Delete(replacementSourceId);
+                repaired++;
+            }
+
+            var emptyFragmentIds = new List<Guid>();
+            foreach (var fragment in fragmentRepository.All())
+            {
+                if (String.IsNullOrEmpty(fragment.Name) && String.IsNullOrEmpty(fragment.Text))
+                {
+                    emptyFragmentIds.Add(fragment.Id);
+                }
+            }
+            foreach (var fragmentId in emptyFragmentIds)
+            {
+                fragmentRepository.Delete(fragmentId);
+                repaired++;
+            }
+
+            var missingFragmentIds = new List<Guid>();
             foreach (var profile in profileRepository.All())
             {
                 foreach (var fragmentId in profile.Fragments.Keys)
                 {
                     if (!fragmentRepository.TryGet(fragmentId, out Fragment? _))
                     {
-                        inexistingFragmentIds.Add(fragmentId);
+                        missingFragmentIds.Add(fragmentId);
                     }
                 }
             }
-
             var fixedProfiles = new List<Profile>();
-            foreach (var fragmentId in inexistingFragmentIds)
+            foreach (var missingFragmentId in missingFragmentIds)
             {
                 foreach (var profile in profileRepository.All())
                 {
-                    if (profile.RemoveFragment(fragmentId))
+                    if (profile.RemoveFragment(missingFragmentId))
                     {
                         fixedProfiles.Add(profile);
                         repaired++;
                     }
                 }
             }
-
             foreach (var profile in fixedProfiles)
             {
                 profileRepository.AddOrUpdate(profile);
+            }
+
+            var missingProfileIds = new List<Guid>();
+            foreach (var fragment in fragmentRepository.All())
+            {
+                foreach (var profileId in fragment.Profiles)
+                {
+                    if (!profileRepository.TryGet(profileId, out Profile? _))
+                    {
+                        missingProfileIds.Add(profileId);
+                    }
+                }
+            }
+            var fixedFragments = new List<Fragment>();
+            foreach (var missingProfileId in missingProfileIds)
+            {
+                foreach(var fragment in fragmentRepository.All())
+                {
+                    if (fragment.Profiles.Remove(missingProfileId))
+                    {
+                        fixedFragments.Add(fragment);
+                        repaired++;
+                    }
+                }
+            }
+            foreach (var fragment in fixedFragments)
+            {
+                fragmentRepository.AddOrUpdate(fragment);
             }
 
             var inexistingReplacementSourceIds = new List<Guid>();
@@ -892,7 +1112,6 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                     inexistingReplacementSourceIds.Add(placeholder.SourceId.Value);
                 }
             }
-
             var fixedPlaceholders = new List<PlaceholderTag>();
             foreach (var replacementSourceId in inexistingReplacementSourceIds)
             {
@@ -906,7 +1125,6 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                     }
                 }
             }
-
             foreach (var placeholder in fixedPlaceholders)
             {
                 placeholderTagRepository.AddOrUpdate(placeholder);
@@ -945,8 +1163,8 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         {
             Task.Run(async () =>
             {
-                await DisplayStatusMessage(cancellationTokenSource.Token, message);
-            }, cancellationTokenSource.Token);
+                await DisplayStatusMessage(lifecycleManager.Token, message);
+            }, lifecycleManager.Token);
         }
 
         /// <summary>
@@ -960,13 +1178,22 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             try
             {
                 statusText = message;
+                if (token.IsCancellationRequested)
+                {
+                    return Task.CompletedTask;
+                }
                 OnPropertyChanged(nameof(StatusText));
                 await Task.Delay(TimeSpan.FromSeconds(StatusMessageDurationSeconds), token);
+                if (token.IsCancellationRequested)
+                {
+                    return Task.CompletedTask;
+                }
                 statusText = String.Empty;
                 OnPropertyChanged(nameof(StatusText));
             }
-            catch (TaskCanceledException)
+            catch (Exception ex)
             {
+                Trace.TraceError($"DisplayStatusMessage; Exception during status message task; Reason: '{ex.Message}'; Type: '{ex.GetType().Name}'");
             }
 
             return Task.CompletedTask;

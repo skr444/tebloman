@@ -5,7 +5,7 @@
 :toc: right
 :toclevels: 3
 :xrefstyle: full
-:revnumber: 1.1
+:revnumber: 1.2
 
 // URLs
 :url-date-format-specifiers: https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#table-of-format-specifiers
@@ -19,6 +19,12 @@
 [cols="2,2,2,1,5a"]
 |===
 | Date | Document version | Software version | Author | Remarks
+
+| 2025-08-07
+| 1.2
+| 1.2.0
+| skr444
+| Updated screen shots to show new UI.
 
 | 2025-03-10
 | 1.1
@@ -171,12 +177,15 @@ Fragments are associated with a profile and are assembled into a larger text by 
 [#img-tebloman_ui_fragments]
 image::tebloman_ui_fragments.png[image]
 
+The fragments can only be created, modified or deleted when the *All Fragments* view is selected.
+Switch between fragment views using the radio buttons *All Fragments* and *In current profile*.
+
 Click the *New* button to create a new fragment.
 Type a name into the small textbox below the *Add to profile* button and specify a text in the large textbox.
 Use the previously created <<Placeholders,placeholders>>.
 Click *Save* when finished and the created fragment appears in the *Available fragments* list.
 
-Select a fragment in the *Available fragments* list and click the *Add to profile* button to associate it with the currently selected profile.
+Select the *In current profile* view and click the *Add to profile* button to associate it with the currently selected profile.
 Use the */\* (up) and *\/* (down) buttons to move the fragment to the desired position.
 Observe the assembled text in the *Output* textbox.
 

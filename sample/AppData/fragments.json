@@ -1,0 +1,42 @@
+{
+  "16d9cec3-9001-4ab4-8713-a89d16e41d07": {
+    "Name": "Hello",
+    "Text": "Dear fellow co-worker",
+    "Profiles": [
+      "3229c8a1-8f7c-416d-b443-cbd402c3d523"
+    ],
+    "Id": "16d9cec3-9001-4ab4-8713-a89d16e41d07",
+    "Created": "2025-08-07T10:36:54.3310648Z",
+    "Modified": "2025-08-07T10:39:21.4671896Z"
+  },
+  "6742f760-6f09-4853-b69d-db01bd12ffe4": {
+    "Name": "Out of office",
+    "Text": "I\u0027m currently out of office and do not have access to my emails.",
+    "Profiles": [
+      "3229c8a1-8f7c-416d-b443-cbd402c3d523"
+    ],
+    "Id": "6742f760-6f09-4853-b69d-db01bd12ffe4",
+    "Created": "2025-08-07T10:37:29.9776831Z",
+    "Modified": "2025-08-07T10:39:24.6213153Z"
+  },
+  "fc32c24e-df47-421b-9b2d-15d452a5f037": {
+    "Name": "Return",
+    "Text": "I will return on {ReturnDate:Weekday} {ReturnDate:i}.",
+    "Profiles": [
+      "3229c8a1-8f7c-416d-b443-cbd402c3d523"
+    ],
+    "Id": "fc32c24e-df47-421b-9b2d-15d452a5f037",
+    "Created": "2025-08-07T10:38:16.2735334Z",
+    "Modified": "2025-08-07T10:47:45.8831986Z"
+  },
+  "028f88b4-82bb-4819-972a-0bb0fc2b635e": {
+    "Name": "Greetings",
+    "Text": "Best regards, Morgan",
+    "Profiles": [
+      "3229c8a1-8f7c-416d-b443-cbd402c3d523"
+    ],
+    "Id": "028f88b4-82bb-4819-972a-0bb0fc2b635e",
+    "Created": "2025-08-07T10:38:52.7135984Z",
+    "Modified": "2025-08-07T10:39:28.7694254Z"
+  }
+}

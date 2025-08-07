@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 using Skr.Tebloman.Common.Data;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 
 using IoFile = System.IO.File;
@@ -15,22 +17,31 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
     /// Reads and writes instances of <typeparamref name="TData"/> from and to disk.
     /// </summary>
     /// <typeparam name="TData">Data type of the instance to persist.</typeparam>
-    internal abstract class FileRepository<TData> : IFileRepository, IRepository<TData> where TData : Entity
+    internal abstract class FileRepository<TData> : Repository<TData>, IFileRepository where TData : Entity
     {
         private readonly string path;
         private readonly JsonSerializerOptions serializeReadOptions;
         private readonly JsonSerializerOptions serializeWriteOptions;
-        protected IDictionary<Guid, TData> store;
+        private readonly ILifecycleManager lifecycleManager;
 
         /// <summary>
         /// Creates a new instance of <see cref="FileRepository{TData}"/>.
         /// </summary>
         /// <param name="storageFilePath">Filesystem path pointing to the storage file.</param>
-        protected FileRepository(string storageFilePath)
+        /// <param name="lifecycleManagement">Central lifecycle management.</param>
+        protected FileRepository(string storageFilePath, ILifecycleManager lifecycleManagement) : base()
         {
             ArgumentException.ThrowIfNullOrEmpty(storageFilePath, nameof(storageFilePath));
-
             path = storageFilePath;
+
+            ArgumentNullException.ThrowIfNull(lifecycleManagement, nameof(lifecycleManagement));
+            lifecycleManager = lifecycleManagement;
+
+            string? folder = Path.GetDirectoryName(path);
+            if (!String.IsNullOrEmpty(folder) && !Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
 
             serializeReadOptions = new JsonSerializerOptions
             {
@@ -43,60 +54,25 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
                 WriteIndented = true
             };
 
-            store = new Dictionary<Guid, TData>();
-            Load();
-        }
-
-        /// <inheritdoc />
-        public void AddOrUpdate(TData data)
-        {
-            Validate(data);
-
-            if (store.ContainsKey(data.Id))
-            {
-                store.Remove(data.Id);
-            }
-
-            store.Add(data.Id, data);
-
-            Save();
-        }
-
-        /// <inheritdoc />
-        public ICollection<TData> All()
-        {
-            Load();
-
-            return store.Values;
-        }
-
-        /// <inheritdoc />
-        public void Delete(Guid id)
-        {
-            if (store.ContainsKey(id))
-            {
-                store.Remove(id);
-                Save();
-            }
-        }
-
-        /// <inheritdoc />
-        public bool TryGet(Guid id, out TData? instance)
-        {
-            instance = null;
-            Load();
-
-            return store.TryGetValue(id, out instance);
+            Acquire();
         }
 
         /// <inheritdoc />
         public void Save()
         {
-            var bytes = JsonSerializer.SerializeToUtf8Bytes(store, serializeWriteOptions);
-            using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write))
+            Task.Run(async () =>
             {
-                stream.Write(bytes, 0, bytes.Length);
-            }
+                using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None,
+                    bufferSize: 8192, useAsync: true))
+                {
+                    if (lifecycleManager.Token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    await JsonSerializer.SerializeAsync(stream, store, serializeWriteOptions, lifecycleManager.Token);
+                }
+            }, lifecycleManager.Token).ConfigureAwait(true).GetAwaiter().GetResult();
         }
 
         /// <inheritdoc />
@@ -104,10 +80,21 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         {
             if (IoFile.Exists(path))
             {
-                using (Stream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read))
+                Task.Run(async () =>
                 {
-                    store = JsonSerializer.Deserialize<IDictionary<Guid, TData>>(stream, serializeReadOptions) ?? new Dictionary<Guid, TData>();
-                }
+                    using (Stream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None,
+                        bufferSize: 8192, useAsync: true))
+                    {
+                        if (lifecycleManager.Token.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
+                        store = await JsonSerializer
+                            .DeserializeAsync<IDictionary<Guid, TData>>(stream, serializeReadOptions, lifecycleManager.Token)
+                                ?? new Dictionary<Guid, TData>();
+                    }
+                }, lifecycleManager.Token).ConfigureAwait(true).GetAwaiter().GetResult();
             }
             else
             {
@@ -124,19 +111,16 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
             }
         }
 
-        /// <summary>
-        /// Validates the specified instance.
-        /// </summary>
-        /// <param name="data">The instance to check.</param>
-        /// <exception cref="ArgumentNullException">If <paramref name="data"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">If <paramref name="data"/> has an invalid identifier.</exception>
-        protected static void Validate(TData data)
+        /// <inheritdoc />
+        protected override void Acquire()
         {
-            ArgumentNullException.ThrowIfNull(data);
-            if (data.Id == Guid.Empty)
-            {
-                throw new ArgumentException("Invalid id.", nameof(data));
-            }
+            Load();
+        }
+
+        /// <inheritdoc />
+        protected override void Persist()
+        {
+            Save();
         }
     }
 }

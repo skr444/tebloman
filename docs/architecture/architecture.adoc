@@ -3,7 +3,7 @@
 :author: skr444
 :toc: right
 :toclevels: 3
-:revnumber: 1.0
+:revnumber: 1.1
 
 // URLs
 :url-community-toolkit: https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/
@@ -13,6 +13,11 @@
 
 |===
 | Date | Document version | Author | Remarks
+
+| 2025-08-07
+| 1.1
+| skr444
+| Updated diagrams.
 
 | 2025-03-05
 | 1.0

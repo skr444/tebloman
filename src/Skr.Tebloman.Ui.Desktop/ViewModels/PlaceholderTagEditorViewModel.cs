@@ -1,25 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using Skr.Tebloman.Common.Data.Model;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 using Skr.Tebloman.Ui.Desktop.Views;
+using Skr.Tebloman.Ui.Helper;
 using Skr.Tebloman.Ui.Services;
 using Skr.Tebloman.Ui.ViewModels;
-using System.Threading;
 
 namespace Skr.Tebloman.Ui.Desktop.ViewModels
 {
     /// <summary>
     /// Provides interaction logic for the <see cref="PlaceholderTagEditor"/> view.
     /// </summary>
-    internal sealed class PlaceholderTagEditorViewModel : ObservableObject
+    internal sealed class PlaceholderTagEditorViewModel : BaseViewModel
     {
         private readonly IPlaceholderTagRepository placeholderTagRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
@@ -185,12 +186,10 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         public string StatusText => statusText ?? String.Empty;
 
-        private RelayCommand newCommand;
-
         /// <summary>
         /// Creates a new placeholder.
         /// </summary>
-        public ICommand NewCommand => newCommand;
+        public ICommand NewCommand { get; }
 
         private RelayCommand saveCommand;
 
@@ -209,8 +208,9 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// </summary>
         /// <param name="fileStorage">File storage service.</param>
         /// <param name="placeholderTagService">Placeholder tag service.</param>
-        public PlaceholderTagEditorViewModel(IFileStorage fileStorage, IPlaceholderTagService placeholderTagService,
-            IAppInfoService infoService)
+        public PlaceholderTagEditorViewModel(ILifecycleManager lifecycle, IFileStorage fileStorage,
+            IPlaceholderTagService placeholderTagService, IAppInfoService infoService)
+            : base(lifecycle)
         {
             placeholderTagRepository = fileStorage.GetRepository<IPlaceholderTagRepository>();
             replacementSourceRepository = fileStorage.GetRepository<IReplacementSourceRepository>();
@@ -220,7 +220,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            newCommand = new RelayCommand(() =>
+            NewCommand = new RelayCommand(() =>
             {
                 placeholder = new PlaceholderTagListItemViewModel(new PlaceholderTag());
                 OnPropertyChanged(nameof(Pattern));
@@ -253,18 +253,19 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                        && !String.IsNullOrWhiteSpace(placeholder?.Item?.EndMarker);
             });
 
-            CloseCommand = new RelayCommand<IClosable>(CloseWindow);
+            CloseCommand = new RelayCommand(RequestClose);
         }
 
-        /// <summary>
-        /// Terminates asynchronous operations and closes this window.
-        /// </summary>
-        /// <param name="window"></param>
-        private void CloseWindow(IClosable? window)
+        #region BaseViewModel
+
+        public override bool ProcessCloseRequest()
         {
             cancellationTokenSource.Cancel();
-            window?.Close();
+            Thread.Sleep(TimeSpan.FromMilliseconds(300));
+            return true;
         }
+
+        #endregion BaseViewModel
 
         /// <summary>
         /// Displays a disappearing status notification.

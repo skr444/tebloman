@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("Skr.Tebloman.Infrastructure.Storage")]
 
 [assembly: InternalsVisibleTo("Skr.Tebloman.Ui.Desktop")]
+[assembly: InternalsVisibleTo("Skr.Tebloman.Infrastructure.Storage.Test")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

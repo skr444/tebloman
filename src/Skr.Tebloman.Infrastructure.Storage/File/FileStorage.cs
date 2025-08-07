@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 
 namespace Skr.Tebloman.Infrastructure.Storage.File
@@ -16,14 +17,25 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         private readonly IFragmentRepository fragmentRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
 
-        public FileStorage(string storageDir)
+        /// <inheritdoc/>
+        public string StorageDirectory => storageDirectory;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="FileStorage"/>.
+        /// </summary>
+        /// <param name="storageDir">Application data storage directory.</param>
+        /// <param name="lifecycleManagement">Central lifecycle management.</param>
+        public FileStorage(string storageDir, ILifecycleManager lifecycleManagement)
         {
             storageDirectory = storageDir;
 
-            profileRepository = new ProfileRepository(Path.Combine(storageDirectory, "profiles.json"));
-            placeholderTagRepository = new PlaceholderTagRepository(Path.Combine(storageDirectory, "placeholders.json"));
-            fragmentRepository = new FragmentRepository(Path.Combine(storageDirectory, "fragments.json"));
-            replacementSourceRepository = new ReplacementSourceRepository(Path.Combine(storageDirectory, "replacementSources.json"));
+            profileRepository = new ProfileRepository(Path.Combine(storageDirectory, "profiles.json"), lifecycleManagement);
+            placeholderTagRepository = new PlaceholderTagRepository(Path.Combine(storageDirectory, "placeholders.json"),
+                lifecycleManagement);
+            fragmentRepository = new FragmentRepository(Path.Combine(storageDirectory, "fragments.json"), lifecycleManagement);
+            replacementSourceRepository = new ReplacementSourceRepository(
+                Path.Combine(storageDirectory, "replacementSources.json"),
+                lifecycleManagement);
         }
 
         /// <inheritdoc/>

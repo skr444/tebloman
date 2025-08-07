@@ -1,4 +1,5 @@
 ﻿using Skr.Tebloman.Common.Data.Model;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 
 namespace Skr.Tebloman.Infrastructure.Storage.File
@@ -12,7 +13,9 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         /// Creates a new instance of <see cref="FragmentRepository"/>.
         /// </summary>
         /// <param name="storagePath">Filesystem path pointing to the storage file.</param>
-        public FragmentRepository(string storagePath) : base(storagePath)
+        /// <param name="lifecycleManagement">Central lifecycle management.</param>
+        public FragmentRepository(string storagePath, ILifecycleManager lifecycleManagement)
+            : base(storagePath, lifecycleManagement)
         {
         }
     }

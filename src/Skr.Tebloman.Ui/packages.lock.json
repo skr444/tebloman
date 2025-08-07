@@ -11,10 +11,14 @@
       "skr.tebloman.common.data": {
         "type": "Project"
       },
+      "skr.tebloman.infrastructure.runtime": {
+        "type": "Project"
+      },
       "skr.tebloman.infrastructure.storage": {
         "type": "Project",
         "dependencies": {
-          "Skr.Tebloman.Common.Data": "[1.0.0, )"
+          "Skr.Tebloman.Common.Data": "[1.0.0, )",
+          "Skr.Tebloman.Infrastructure.Runtime": "[1.0.0, )"
         }
       }
     }

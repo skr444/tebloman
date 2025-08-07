@@ -1,6 +1,7 @@
 @startuml storage_repository_class_diagram
 
 interface IFileStorage {
+    + StorageDirectory : string
     + GetRepository<T>() : T
     + Load() : void
     + Save() : void
@@ -25,6 +26,7 @@ interface IFragmentRepository
 interface IPlaceholderTagRepository
 interface IReplacementSourceRepository
 
+abstract class Repository<T>
 abstract class FileRepository<T>
 class FileStorage
 class ProfileRepository
@@ -44,7 +46,8 @@ IFileRepository <|-- IReplacementSourceRepository
 
 IFileStorage <|.. FileStorage
 IFileRepository <|.. FileRepository
-IRepository <|.. FileRepository
+IRepository <|.. Repository
+Repository <|-- FileRepository
 
 FileRepository <|-- ProfileRepository
 FileRepository <|-- FragmentRepository

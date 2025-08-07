@@ -4,6 +4,9 @@
     "net8.0": {
       "skr.tebloman.common.data": {
         "type": "Project"
+      },
+      "skr.tebloman.infrastructure.runtime": {
+        "type": "Project"
       }
     }
   }

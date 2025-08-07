@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Skr.Tebloman.Infrastructure.Storage.Api
+using Skr.Tebloman.Common.Data;
+
+namespace Skr.Tebloman.Infrastructure.Storage
 {
     /// <summary>
     /// Provides CRUD operations for the specified data type.
     /// </summary>
     /// <typeparam name="TData">Type of data to operate.</typeparam>
-    public interface IRepository<TData>
+    public interface IRepository<TData> where TData : Entity
     {
         /// <summary>
         /// Attempts to retrieve a single instance of <typeparamref name="TData"/>.
