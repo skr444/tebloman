@@ -7,6 +7,11 @@ namespace Skr.Tebloman.Infrastructure.Storage.Api
     public interface IFileStorage
     {
         /// <summary>
+        /// Gets the path to the application data storage directory.
+        /// </summary>
+        string StorageDirectory { get; }
+
+        /// <summary>
         /// Gets the repository for the requested data type.
         /// </summary>
         /// <typeparam name="T">Interface type of the repository.</typeparam>

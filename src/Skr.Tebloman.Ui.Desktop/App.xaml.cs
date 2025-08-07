@@ -11,6 +11,8 @@ using Skr.Tebloman.Infrastructure.Storage.File;
 using Skr.Tebloman.Ui.Services;
 using Skr.Tebloman.Ui.Services.Implementation;
 using Skr.Tebloman.Ui.Desktop.ViewModels;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
+using Skr.Tebloman.Infrastructure.Runtime.Implementation;
 
 namespace Skr.Tebloman.Ui.Desktop
 {
@@ -36,11 +38,15 @@ namespace Skr.Tebloman.Ui.Desktop
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            var lifecycleManager = new LifecycleManager(Current.Shutdown);
             Ioc.Default.ConfigureServices(new ServiceCollection()
+                .AddSingleton<ILifecycleManager, LifecycleManager>(
+                    _ => lifecycleManager)
                 .AddSingleton<IFileStorage, FileStorage>(
-                    _ => new FileStorage(storageDirectory))
+                    _ => new FileStorage(storageDirectory, lifecycleManager))
                 .AddSingleton<IPlaceholderTagService, PlaceholderTagService>()
                 .AddSingleton<IAppInfoService, AppInfoService>()
+                .AddSingleton<IFileSystemService, FileSystemService>()
                 .AddTransient<MainWindowViewModel>()
                 .AddTransient<PlaceholderTagEditorViewModel>()
                 .AddTransient<AboutWindowViewModel>()

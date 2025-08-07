@@ -21,17 +21,26 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         private readonly string path;
         private readonly JsonSerializerOptions serializeReadOptions;
         private readonly JsonSerializerOptions serializeWriteOptions;
-        protected IDictionary<Guid, TData> store;
+        private readonly ILifecycleManager lifecycleManager;
 
         /// <summary>
         /// Creates a new instance of <see cref="FileRepository{TData}"/>.
         /// </summary>
         /// <param name="storageFilePath">Filesystem path pointing to the storage file.</param>
-        protected FileRepository(string storageFilePath)
+        /// <param name="lifecycleManagement">Central lifecycle management.</param>
+        protected FileRepository(string storageFilePath, ILifecycleManager lifecycleManagement) : base()
         {
             ArgumentException.ThrowIfNullOrEmpty(storageFilePath, nameof(storageFilePath));
-
             path = storageFilePath;
+
+            ArgumentNullException.ThrowIfNull(lifecycleManagement, nameof(lifecycleManagement));
+            lifecycleManager = lifecycleManagement;
+
+            string? folder = Path.GetDirectoryName(path);
+            if (!String.IsNullOrEmpty(folder) && !Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
 
             serializeReadOptions = new JsonSerializerOptions
             {
