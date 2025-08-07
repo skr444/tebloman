@@ -8,6 +8,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using Skr.Tebloman.Infrastructure.Storage.Api;
+using Skr.Tebloman.Ui.Helper;
 using Skr.Tebloman.Ui.ViewModels;
 using Skr.Tebloman.Common.Data.Model;
 using CommunityToolkit.Mvvm.Input;
@@ -23,7 +24,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
     /// <summary>
     /// Provides interaction logic for the <see cref="MainWindow"/> view.
     /// </summary>
-    internal sealed class MainWindowViewModel : ObservableObject
+    internal sealed class MainWindowViewModel : BaseViewModel
     {
         #region Types
 
@@ -71,10 +72,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         /// <summary>
         /// Terminates this application.
         /// </summary>
-        public ICommand ExitCommand => new RelayCommand(() =>
-        {
-            Application.Current.Shutdown();
-        });
+        public ICommand ExitCommand => new RelayCommand(RequestClose);
 
         /// <summary>
         /// Loads the data repositories from disk.
@@ -584,11 +582,6 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
         public string StatusText => statusText ?? String.Empty;
 
         /// <summary>
-        /// Terminates asyncronous operations and closes the main window.
-        /// </summary>
-        public ICommand WindowClosingCommand { get; }
-
-        /// <summary>
         /// Creates a new instance of <see cref="MainWindowViewModel"/>.
         /// </summary>
         /// <param name="fileStorage">The file storage service.</param>
@@ -802,21 +795,20 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
             {
                 return (replacementSource != null);
             });
-
-            WindowClosingCommand = new RelayCommand<IClosable>(OnWindowClosing);
         }
+
+        #region BaseViewModel
+
+        public override bool ProcessCloseRequest()
+        {
+            lifecycleManager.Cancel();
+            Thread.Sleep(TimeSpan.FromMilliseconds(500));
+            return true;
+        }
+
+        #endregion BaseViewModel
 
         #region Helpers
-
-        /// <summary>
-        /// Proxy method for <see cref="Window.Close"/>.
-        /// Here it's used as a handler for the closed event.
-        /// </summary>
-        /// <param name="window">The instance of the window that was closed.</param>
-        private void OnWindowClosing(IClosable? window)
-        {
-            cancellationTokenSource.Cancel();
-        }
 
         /// <summary>
         /// Replaces all placeholders in a fragment with their corresponding values.

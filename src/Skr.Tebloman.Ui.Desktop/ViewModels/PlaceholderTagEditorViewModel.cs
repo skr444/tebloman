@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using Skr.Tebloman.Common.Data.Model;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 using Skr.Tebloman.Ui.Desktop.Views;
+using Skr.Tebloman.Ui.Helper;
 using Skr.Tebloman.Ui.Services;
 using Skr.Tebloman.Ui.ViewModels;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
     /// <summary>
     /// Provides interaction logic for the <see cref="PlaceholderTagEditor"/> view.
     /// </summary>
-    internal sealed class PlaceholderTagEditorViewModel : ObservableObject
+    internal sealed class PlaceholderTagEditorViewModel : BaseViewModel
     {
         private readonly IPlaceholderTagRepository placeholderTagRepository;
         private readonly IReplacementSourceRepository replacementSourceRepository;
@@ -253,18 +254,19 @@ namespace Skr.Tebloman.Ui.Desktop.ViewModels
                        && !String.IsNullOrWhiteSpace(placeholder?.Item?.EndMarker);
             });
 
-            CloseCommand = new RelayCommand<IClosable>(CloseWindow);
+            CloseCommand = new RelayCommand(RequestClose);
         }
 
-        /// <summary>
-        /// Terminates asynchronous operations and closes this window.
-        /// </summary>
-        /// <param name="window"></param>
-        private void CloseWindow(IClosable? window)
+        #region BaseViewModel
+
+        public override bool ProcessCloseRequest()
         {
             cancellationTokenSource.Cancel();
-            window?.Close();
+            Thread.Sleep(TimeSpan.FromMilliseconds(300));
+            return true;
         }
+
+        #endregion BaseViewModel
 
         /// <summary>
         /// Displays a disappearing status notification.
