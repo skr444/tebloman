@@ -1,0 +1,32 @@
+{
+  "abe0903c-068d-4121-8d91-75da9fbd9d08": {
+    "Pattern": "ReturnDate",
+    "Replacement": "",
+    "SourceId": "936eb024-40d5-4e11-947c-e4c42a7b83ea",
+    "StartMarker": "{",
+    "EndMarker": "}",
+    "RegexInstance": {
+      "Options": 520,
+      "RightToLeft": false,
+      "MatchTimeout": "-00:00:00.0010000"
+    },
+    "Id": "abe0903c-068d-4121-8d91-75da9fbd9d08",
+    "Created": "2025-02-28T23:09:34.4419819Z",
+    "Modified": "2025-08-07T12:55:59.1826598Z"
+  },
+  "09305fa8-6e12-44f0-9648-c3ba53fcd053": {
+    "Pattern": "me",
+    "Replacement": "Jeff",
+    "SourceId": null,
+    "StartMarker": "{",
+    "EndMarker": "}",
+    "RegexInstance": {
+      "Options": 520,
+      "RightToLeft": false,
+      "MatchTimeout": "-00:00:00.0010000"
+    },
+    "Id": "09305fa8-6e12-44f0-9648-c3ba53fcd053",
+    "Created": "2025-02-28T23:11:53.5389516Z",
+    "Modified": "2025-02-28T23:11:53.5389519Z"
+  }
+}
