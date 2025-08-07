@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Skr.Tebloman.Common.Data;
+using Skr.Tebloman.Infrastructure.Runtime.Api;
 using Skr.Tebloman.Infrastructure.Storage.Api;
 
 using IoFile = System.IO.File;
@@ -15,7 +16,7 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
     /// Reads and writes instances of <typeparamref name="TData"/> from and to disk.
     /// </summary>
     /// <typeparam name="TData">Data type of the instance to persist.</typeparam>
-    internal abstract class FileRepository<TData> : IFileRepository, IRepository<TData> where TData : Entity
+    internal abstract class FileRepository<TData> : Repository<TData>, IFileRepository where TData : Entity
     {
         private readonly string path;
         private readonly JsonSerializerOptions serializeReadOptions;
@@ -43,50 +44,7 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
                 WriteIndented = true
             };
 
-            store = new Dictionary<Guid, TData>();
-            Load();
-        }
-
-        /// <inheritdoc />
-        public void AddOrUpdate(TData data)
-        {
-            Validate(data);
-
-            if (store.ContainsKey(data.Id))
-            {
-                store.Remove(data.Id);
-            }
-
-            store.Add(data.Id, data);
-
-            Save();
-        }
-
-        /// <inheritdoc />
-        public ICollection<TData> All()
-        {
-            Load();
-
-            return store.Values;
-        }
-
-        /// <inheritdoc />
-        public void Delete(Guid id)
-        {
-            if (store.ContainsKey(id))
-            {
-                store.Remove(id);
-                Save();
-            }
-        }
-
-        /// <inheritdoc />
-        public bool TryGet(Guid id, out TData? instance)
-        {
-            instance = null;
-            Load();
-
-            return store.TryGetValue(id, out instance);
+            Acquire();
         }
 
         /// <inheritdoc />
@@ -124,19 +82,16 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
             }
         }
 
-        /// <summary>
-        /// Validates the specified instance.
-        /// </summary>
-        /// <param name="data">The instance to check.</param>
-        /// <exception cref="ArgumentNullException">If <paramref name="data"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentException">If <paramref name="data"/> has an invalid identifier.</exception>
-        protected static void Validate(TData data)
+        /// <inheritdoc />
+        protected override void Acquire()
         {
-            ArgumentNullException.ThrowIfNull(data);
-            if (data.Id == Guid.Empty)
-            {
-                throw new ArgumentException("Invalid id.", nameof(data));
-            }
+            Load();
+        }
+
+        /// <inheritdoc />
+        protected override void Persist()
+        {
+            Save();
         }
     }
 }
