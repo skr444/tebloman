@@ -8,19 +8,25 @@ storage - s_api
 
 interface "Ui.Api" as ui_api
 [Ui] as ui
-ui - ui_api
+ui -- ui_api
 
 [Ui.Desktop] as desktop
+
+interface "Runtime.Api" as r_api
+[Infrastructure.Runtime] as runtime
+runtime - r_api
 
 desktop ..> ui
 desktop ..> ui_api
 desktop ..> s_api
 desktop ..> data
+desktop ..> r_api
 
 ui ..> s_api
 ui ..> data
 
-storage ..> data
+storage ...> data
+storage ..> r_api
 
 note top of desktop
     WPF user interface
@@ -45,6 +51,10 @@ end note
 note top of data
     Data model for
     internal data structure
+end note
+
+note top of runtime
+    Application lifecycle managment
 end note
 
 @enduml
