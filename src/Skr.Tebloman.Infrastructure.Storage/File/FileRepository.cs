@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 using Skr.Tebloman.Common.Data;
 using Skr.Tebloman.Infrastructure.Runtime.Api;
@@ -59,11 +60,19 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         /// <inheritdoc />
         public void Save()
         {
-            var bytes = JsonSerializer.SerializeToUtf8Bytes(store, serializeWriteOptions);
-            using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write))
+            Task.Run(async () =>
             {
-                stream.Write(bytes, 0, bytes.Length);
-            }
+                using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None,
+                    bufferSize: 8192, useAsync: true))
+                {
+                    if (lifecycleManager.Token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    await JsonSerializer.SerializeAsync(stream, store, serializeWriteOptions, lifecycleManager.Token);
+                }
+            }, lifecycleManager.Token).ConfigureAwait(true).GetAwaiter().GetResult();
         }
 
         /// <inheritdoc />
@@ -71,10 +80,21 @@ namespace Skr.Tebloman.Infrastructure.Storage.File
         {
             if (IoFile.Exists(path))
             {
-                using (Stream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read))
+                Task.Run(async () =>
                 {
-                    store = JsonSerializer.Deserialize<IDictionary<Guid, TData>>(stream, serializeReadOptions) ?? new Dictionary<Guid, TData>();
-                }
+                    using (Stream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None,
+                        bufferSize: 8192, useAsync: true))
+                    {
+                        if (lifecycleManager.Token.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
+                        store = await JsonSerializer
+                            .DeserializeAsync<IDictionary<Guid, TData>>(stream, serializeReadOptions, lifecycleManager.Token)
+                                ?? new Dictionary<Guid, TData>();
+                    }
+                }, lifecycleManager.Token).ConfigureAwait(true).GetAwaiter().GetResult();
             }
             else
             {
